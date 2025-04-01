@@ -6,7 +6,7 @@ Need :
 Resulting in BLAST_out_reclustered_summary_tax.txt
 """
 
-# je supprime cette premiere partie car deja telecharge rankedlineage_tabRemoved.dmp
+# Just once, to downlaod ranked_lineage and format it
 
 # define commands for downloading taxonomy database from NCBI and saving it in a folder with the current date
 # if folder exists, it overwrites it
@@ -34,7 +34,6 @@ Resulting in BLAST_out_reclustered_summary_tax.txt
 taxonomy_Dict = {}
 
 # This will parse the ncbi taxonomy file to get the column of interest
-# with open("/env/cns/proj/projet_CZK/Database_MiFish/rankedlineage_tabRemoved.dmp", "r") as file:
 with open("/home/edna/src/rankedlineage_tabRemoved.dmp", "r") as file:
 	for line in file:
 		l3 = line.strip().split('|')

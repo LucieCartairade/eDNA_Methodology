@@ -6,7 +6,7 @@ Need :
 Resulting in BLAST_out_reclustered_summary_tax.txt
 """
 
-# Juste once : 
+# Just once, to downlaod ranked_lineage and format it :
 
 # define commands for downloading taxonomy database from NCBI and saving it in a folder with the current date
 # if folder exists, it overwrites it
