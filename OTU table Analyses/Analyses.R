@@ -1,8 +1,8 @@
 #### Environment #### 
 
-setwd("C:/Users/lcartair/Documents/eDNA_FromWaterToBiodiversity/2209_Papetoai_Manip_PorositeVolume/")
-Datas_path <- "C:/Users/lcartair/Documents/eDNA_FromWaterToBiodiversity/2209_Papetoai_Manip_PorositeVolume/Res_Decona/"
-Images_path <- "C:/Users/lcartair/Documents/eDNA_FromWaterToBiodiversity/2209_Papetoai_Manip_PorositeVolume/ResultsR/"
+setwd("path/to/working/directory/")
+Datas_path <- "path/to/working/directory/Res_Decona/"
+Images_path <- "path/to/working/directory/ResultsR/"
 
 source("../Functions.R")
 
@@ -21,7 +21,6 @@ metadatas$Barcod <- stringr::str_sub(metadatas$Barcod,3,4)
 # match sample names
 metadatas$Run_Barcod <- paste0(metadatas$Run.name,"_barcode",metadatas$Barcod,"_concatenated")
 
-metadatas <- metadatas[metadatas$Sample.Type == "Porosity" | metadatas$Sample.Type == "Control",]
 
 ###############################################################################b
 #####                    Results From Decona                               #####
