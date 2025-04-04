@@ -50,7 +50,7 @@ porechop -i //fastq_source --require_two_barcodes -b //fastq_results --threads 1
 ###### Reads Length distribution
 ```bash 
 
-cd ~/fasTmp/Reprise_AMP/Run_1/Res_Porechop/
+cd ~/fasTmp/$Experiment_name/$Run_name/Res_Porechop/
 wc -l *.fastq | head -n -1 | awk '{printf "%.0f\n", $1/4}' | Rscript -e 'lines <- (readLines ("stdin"));data <- data.frame(NbReads = as.numeric(lines));dotchart(data$NbReads,xlab="Number of reads", labels = c("BC01","BC02","BC03","BC04","BC05","BC06","BC07","BC08","BC09", "BC10", "BC11","BC12", "BC13","BC15","BC23","BC24","none"), main="Number of reads in each barcode file")' ; mv Rplots.pdf DotChart_NbReadsPerBC.pdf
 
 for BC in *.fastq ; do
@@ -86,29 +86,24 @@ ggsave(filename = paste0(path,"SizeDistrib.svg"), width = 10, height = 10)
 ## Decona 
 https://github.com/Saskia-Oosterbroek/decona
 ```bash 
-mkdir -p /path/to/$Experiment_name/$Run_name/Res_Decona/
-cp /path/to/DB240625_MiFish_Actino_v2_modified.fasta /path/to/$Experiment_name/$Run_name/Res_Decona/
-
-#for BC in 01 02 03 04 05 06 07 08 09 10 11 12 20 22 23 24 ; do
-#  mkdir /path/to/$Experiment_name/$Run_name/Res_Decona/barcode$BC/ 
-#  ln -s /path/to/$Experiment_name/$Run_name/Res_Porechop/BC$BC.fastq /path/to/$Experiment_name/$Run_name/Res_Decona/barcode$BC/
-#done 
-
-cd /home/edna/fasTmp/$Experiment_name/$Run_name/Res_Porechop/
-for BC in BC*.fastq ; 
-do 
-  mkdir /home/edna/fasTmp//$Experiment_name/$Run_name/Res_Decona/barcode${BC:2:-6}/ 
-  ln -s /home/edna/fasTmp/$Experiment_name/$Run_name/Res_Porechop/$BC /home/edna/fasTmp/$Experiment_name/$Run_name/Res_Decona/barcode${BC:2:-6}/
-done 
-
-cd ~/fasTmp/$Experiment_name/$Run_name/Res_Decona/
-
 conda activate decona1.4
 export PATH=$PATH:/path/to/minimap2
 
-/paht/to/decona/decona_lucie -l 180 -m 250 -q 10 -c 0.95 -n 10 -f -T 32 -NCAM > output_c95_n10_db240625 2>&1
+mkdir -p /path/to/$Experiment_name/$Run_name/Res_Decona/
 
-script_reclustering_241003.sh
+cd /path/to/$Experiment_name/$Run_name/Res_Porechop/
+for BC in BC*.fastq ; 
+do 
+  mkdir /path/to/$Experiment_name/$Run_name/Res_Decona/barcode${BC:2:-6}/ 
+  ln -s /path/to/$Experiment_name/$Run_name/Res_Porechop/$BC /path/to/$Experiment_name/$Run_name/Res_Decona/barcode${BC:2:-6}/
+done 
+cd /home/eDNA/fasTmp/$Experiment_name/$Run_name/Res_Decona/
+
+decona -l 180 -m 250 -q 10 -c 0.97 -n 10 -k 5 -i /path/to/$Experiment_name/$Run_name/Res_Decona/ -T 32 -fNCAM > /path/to/$Experiment_name/$Run_name/Res_Decona/output_97_n10 2>&1 
+
+# Creating the barcode_list.txt file
+
+script_reclustering_250403.sh /path/to/DB250403_MiFish_Actino_v2_modified.fasta
 
 conda deactivate
 ```

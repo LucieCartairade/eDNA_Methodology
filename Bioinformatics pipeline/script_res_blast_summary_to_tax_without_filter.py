@@ -1,7 +1,7 @@
 """ 
 Script to retrieve taxonomic lineage (Familly Genus, species) from one (or multiple) tax ID.
 Need : 
-	- /home/edna/src/rankedlineage_tabRemoved.dmp : see how o dowload it at the begining of this script 
+	- rankedlineage_tabRemoved.dmp : see how o dowload it at the begining of this script 
 	- BLAST_out_reclustered_best_res.txt : output format 6 from blast 
 Resulting in BLAST_out_reclustered_summary_tax.txt
 """
@@ -34,7 +34,7 @@ Resulting in BLAST_out_reclustered_summary_tax.txt
 taxonomy_Dict = {}
 
 # This will parse the ncbi taxonomy file to get the column of interest
-with open("/home/edna/src/rankedlineage_tabRemoved.dmp", "r") as file:
+with open("rankedlineage_tabRemoved.dmp", "r") as file:
 	for line in file:
 		l3 = line.strip().split('|')
 		tax_id = l3[0]
