@@ -65,7 +65,7 @@ with open("BLAST_out_reclustered_best_res.txt",'r') as filin:
 					if taxonomy_Dict[tax][-3] != family and taxonomy_Dict[tax][-3] not in family.split("-") : 
 						family = family + "-" + taxonomy_Dict[tax][-3]
 					if taxonomy_Dict[tax][-2] != genus and taxonomy_Dict[tax][-2] not in genus.split("-") : 
-						genus = genus + "-" + taxonomy_Dict[taxon][-2]
+						genus = genus + "-" + taxonomy_Dict[tax][-2]
 					if taxonomy_Dict[tax][-1].split()[1] != species and taxonomy_Dict[tax][-1].split()[1] not in species.split("-") : 
 						print(species)
 						species = species + "-" + taxonomy_Dict[tax][-1].split()[1]

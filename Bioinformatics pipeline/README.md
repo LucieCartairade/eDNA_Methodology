@@ -17,10 +17,10 @@ https://github.com/asadprodhan/GPU-accelerated-guppy-basecalling
 guppy_basecaller --print_workflows
 
 # Example for a R9.4 Flowcell :
-guppy_basecaller --input_path /path/to/$experiment_name/$run_name/$run_id/fast5_pass/ --save_path $xperiement_name/$run_name/basecalled/ -c /opt/ont/guppy/data/dna_r9.4.1_450bps_sup.cfg -x "cuda:0" --compress_fastq
+guppy_basecaller --input_path /path/to/$Experiment_name/$Run_name/$Run_id/fast5_pass/ --save_path $Experiement_name/$Run_name/basecalled/ -c /opt/ont/guppy/data/dna_r9.4.1_450bps_sup.cfg -x "cuda:0" --compress_fastq
 
 # Example for a R10.4 Flowcell :
-guppy_basecaller --input_path  /path/to/$experiment_name/$run_name/$run_id/fast5/ --save_path $xperiement_name/$run_name/basecalled/ -c /opt/ont/guppy/data/dna_r10.3_450bps_sup.cfg -x "cuda:0" --compress_fastq
+guppy_basecaller --input_path  /path/to/$Experiment_name/$Run_name/$Run_id/fast5/ --save_path $Experiement_name/$Run_name/basecalled/ -c /opt/ont/guppy/data/dna_r10.3_450bps_sup.cfg -x "cuda:0" --compress_fastq
 ```
 
 To check the basecalling and run qualities : 
@@ -102,8 +102,11 @@ cd /home/eDNA/fasTmp/$Experiment_name/$Run_name/Res_Decona/
 decona -l 180 -m 250 -q 10 -c 0.97 -n 10 -k 5 -i /path/to/$Experiment_name/$Run_name/Res_Decona/ -T 32 -fNCAM > /path/to/$Experiment_name/$Run_name/Res_Decona/output_97_n10 2>&1 
 
 # Creating the barcode_list.txt file
+echo -e "" > barcode_list.txt
+# Creating the header.txt file
+echo -e "clusters id\n%ID\nalignment length\nmismatches\ngap opens\nevalue\nbit score\nqcovs\nDB id\ntax id\nFamily\nGenus\nSpecies\nsequence" > header.txt
 
-script_reclustering_250403.sh /path/to/DB250403_MiFish_Actino_v2_modified.fasta
+/home/edna/src/script_reclustering250403.sh /home/edna/src/Databases/BLASTdatabase_DB250403/DB250403_MiFish_Actino_v2_modified.fasta /home/edna/fasTmp/$Experiment_name/barcode_list_Porosite.txt /home/edna/fasTmp/$Experiment_name/header.txt
 
 conda deactivate
 ```
