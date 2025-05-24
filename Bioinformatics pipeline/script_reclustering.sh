@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Navigate to the root of the three runs
+rm -rf Res_Decona_all_runs
 mkdir Res_Decona_all_runs/
 for run in * ; do 
   if [ -e "$run/Res_Decona" ] ; then
@@ -51,15 +52,15 @@ for run in * ; do
 done 
 
 cd Res_Decona_all_runs/
-rm All_medaka_fastas_all_barcodes_all_runs.fasta
+#rm All_medaka_fastas_all_barcodes_all_runs.fasta
 cat All_medaka_fastas_all_barcodes_*.fasta >> All_medaka_fastas_all_barcodes_all_runs.fasta
 
 # Reclustering all barcodes together
-cd-hit-est -i All_medaka_fastas_all_barcodes_all_runs.fasta -o 2nd_clust.fasta -c 0.95 -n 5 -d 0 -aS 0.9 -G 0 -M 0 -T 32 -g 1 > output_reclustering 2>&1 
+cd-hit-est -i All_medaka_fastas_all_barcodes_all_runs.fasta -o 2nd_clust.fasta -c 0.97 -n 5 -d 0 -aS 0.9 -G 0 -M 0 -T 32 -g 1 > output_reclustering 2>&1 
 
 # Taxonomic assignation 
 makeblastdb -in $1 -dbtype nucl -parse_seqids
-blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident length mismatch gapopen evalue bitscore salltitles sallseqid" -max_target_seqs 20 -max_hsps 500 -num_threads 32 > BLAST_out_reclustered.txt ;
+blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident length mismatch gapopen evalue bitscore qcovs salltitles sallseqid" -max_target_seqs 20 -max_hsps 500 -num_threads 32 > BLAST_out_reclustered.txt ;
 # blastn options #
 
 # query: Name of the file containing the query sequence(s), or ‘-‘ if these are provided on standard input.
@@ -87,11 +88,11 @@ blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident 
 
 
 # Concatenation match with identical bitscore
-python script_concatenating_double_OTUs.py BLAST_out_reclustered.txt
+python /home/edna/src/script_concatenating_double_OTUs.py BLAST_out_reclustered.txt
 
 # Adding taxonomy level to the blast result
-python script_res_blast_summary_to_tax.py
-python script_res_blast_summary_to_tax_without_filter.py
+python /home/edna/src/script_res_blast_summary_to_tax_db241009.py
+python /home/edna/src/script_res_blast_summary_to_tax_db241104_without_filter.py
 
 
 # Identifying and adding clusters which do not has a taxonomic assignation at all
@@ -114,9 +115,10 @@ wc -l not_found.txt
 cat not_found.txt >> BLAST_out_reclustered_summary_tax.txt
 
 # Adding consensus sequence to the summary fie. 
-python script_adding_seq_to_res_sum_tax.py
+python /home/edna/src/script_adding_seq_to_res_sum_tax.py
 
 # Couting reads in each cluster to make one OTU table pour all samples 
-python script_counting_reads.py $2 $3
+python /home/edna/src/script_counting_reads.py $2 $3
 # $2 is the file location of barcod_list.txt 
 # $3 is the file location of header.txt 
+

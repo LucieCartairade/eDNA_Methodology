@@ -106,7 +106,7 @@ echo -e "" > barcode_list.txt
 # Creating the header.txt file
 echo -e "clusters id\n%ID\nalignment length\nmismatches\ngap opens\nevalue\nbit score\nqcovs\nDB id\ntax id\nFamily\nGenus\nSpecies\nsequence" > header.txt
 
-/home/edna/src/script_reclustering250403.sh /home/edna/src/Databases/BLASTdatabase_DB250403/DB250403_MiFish_Actino_v2_modified.fasta /home/edna/fasTmp/$Experiment_name/barcode_list_Porosite.txt /home/edna/fasTmp/$Experiment_name/header.txt
+script_reclustering.sh /path/to/DB250403_MiFish_Actino_v2_modified.fasta /path/to/$Experiment_name/barcode_list_Porosite.txt /path/to/$Experiment_name/header.txt
 
 conda deactivate
 ```
