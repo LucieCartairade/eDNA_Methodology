@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Navigate to the root of the three runs
+# Navigate to the root of all runs
 rm -rf Res_Decona_all_runs
 mkdir Res_Decona_all_runs/
 for run in * ; do 
@@ -86,13 +86,12 @@ blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident 
 #
 
 
-
 # Concatenation match with identical bitscore
-python /home/edna/src/script_concatenating_double_OTUs.py BLAST_out_reclustered.txt
+python script_concatenating_double_OTUs.py BLAST_out_reclustered.txt
 
 # Adding taxonomy level to the blast result
-python /home/edna/src/script_res_blast_summary_to_tax_db241009.py
-python /home/edna/src/script_res_blast_summary_to_tax_db241104_without_filter.py
+python script_res_blast_summary_to_tax_db241009.py
+python script_res_blast_summary_to_tax_db241104_without_filter.py
 
 
 # Identifying and adding clusters which do not has a taxonomic assignation at all
@@ -115,10 +114,10 @@ wc -l not_found.txt
 cat not_found.txt >> BLAST_out_reclustered_summary_tax.txt
 
 # Adding consensus sequence to the summary fie. 
-python /home/edna/src/script_adding_seq_to_res_sum_tax.py
+python script_adding_seq_to_res_sum_tax.py
 
 # Couting reads in each cluster to make one OTU table pour all samples 
-python /home/edna/src/script_counting_reads.py $2 $3
+python script_counting_reads.py $2 $3
 # $2 is the file location of barcod_list.txt 
 # $3 is the file location of header.txt 
 

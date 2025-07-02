@@ -1,5 +1,5 @@
 """
-Script to add seq to OTUs. 
+Script to add corresponding consensus sequence to each OTU.
 Need : 
     - 2nd_clust.fasta : output from cd-hit-est, all cluster ID wit their consensus sequence 
     - BLAST_out_reclustered_summary_tax.txt : output format 6 from blast.
