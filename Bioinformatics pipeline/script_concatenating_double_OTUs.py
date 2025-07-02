@@ -1,5 +1,5 @@
 """
-Script to concatenate the reference database id between each OTUs that have the same biscore.
+Script to concatenate the reference database id of each OTU that share the same biscore.
 Need a file which is the result format 6 of blast. Input this file name in argument
 The first column is an uniq name of a cluster, and the 7th is the bitscore, 8th a tax ID.
 Result in a new file : 'BLAST_out_reclustered_best_res.txt' with uniq cluster_id and possible muliple tax_id separated by '_'

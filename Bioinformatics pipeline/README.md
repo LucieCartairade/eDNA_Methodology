@@ -1,18 +1,16 @@
-(Ctrl+K V)
 # Bioinformatics pipeline
-The following command lines allows to generate a unique **OTU table** from `.fast5` files of eDNA metabarcoding data from **Nanopore sequencing technology**.
+The following command lines is used to generate a unique **OTU table** from `.fast5` files of eDNA metabarcoding data from **Nanopore sequencing technology**.
 
-This repository contains : 
-- `ngs_rg_nanopore_run_quality_control-master.tar.gz` : script to check the basecalling and run qualities
-- `decona` : decona script from https://github.com/Saskia-Oosterbroek/decona
-- `DB_MiFish_Actino.fasta` : **Zenodo link?** 
-- `barcode_list.txt` : file format example
+This repository contains: 
+- `ngs_rg_nanopore_run_quality_control-master.tar.gz`: script for checking basecalling and run quality
+- `decona`: decona script from https://github.com/Saskia-Oosterbroek/decona
+- `DB_MiFish_Actino.fasta`: **Zenodo link?** 
+- `barcode_list.txt`: file example
 - `header.txt` 
-- `script_reclustering.sh` : **est ce que je le laisse en script comme ça, ou je le met à la suite dans ce readme ?**
-- `script_concatenating_double_OTUs.py` : Concatenating the reference database id between each OTU that have the same biscore.
-- `script_res_blast_summary_to_tax_without_filter.py` : Retrieving taxonomic lineage (Familly Genus, species) from one (or multiple) tax ID.
-- `script_adding_seq_to_res_sum_tax.py` : Adding corresponding consensus sequence to each OTU.
-- `script_counting_reads.py` : Counting the number of reads in each OTU cluster and create a matrix OTU table
+- `script_concatenating_double_OTUs.py` : Concatenating the reference database id of each OTU that share the same biscore
+- `script_res_blast_summary_to_tax_without_filter.py`: Retrieving taxonomic lineage (Familly Genus, species) from one ore more tax IDs
+- `script_adding_seq_to_res_sum_tax.py`: Adding corresponding consensus sequence to each OTU
+- `script_counting_reads.py`: Counting the number of reads in each OTU cluster and create a matrix OTU table
 
 ## Basecalling with guppy 
 https://github.com/asadprodhan/GPU-accelerated-guppy-basecalling
@@ -86,7 +84,7 @@ ggsave(filename = paste0(path,"SizeDistrib.svg"), width = 10, height = 10)
 ```
 
 ## Decona 
-Run theses command line for each $Run_name you have
+Run the following command lines for each `$Run_name`:
 ```bash 
 conda activate decona1.4
 export PATH=$PATH:/path/to/minimap2
@@ -109,7 +107,7 @@ Now, you could call `script_reclustering.sh /path/to/DB250403_MiFish_Actino_v2_m
 ## Reclustering script
 
 ``` bash
-# Navigate to the root of all runs
+# Navigate to the root directory of all runs
 rm -rf Res_Decona_all_runs
 mkdir Res_Decona_all_runs/
 for run in * ; do 

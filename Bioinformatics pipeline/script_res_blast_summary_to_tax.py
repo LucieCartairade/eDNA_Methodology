@@ -1,5 +1,5 @@
 """ 
-Script to retrieve taxonomic lineage (Familly Genus, species) from one (or multiple) tax ID.
+Script to retrieve taxonomic lineage (Familly Genus, species) from one or more tax IDs.
 This script did not add the species name if percentage of identity is bellow 97%, the genus name if it is under 96.4% of identity, and any information if it is under 88.2%. (values are based on ROC Curve analysis)
 Need : 
 	- rankedlineage_tabRemoved.dmp : see how o dowload it at the begining of this script 
