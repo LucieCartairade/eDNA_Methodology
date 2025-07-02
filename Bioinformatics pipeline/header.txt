@@ -1,0 +1,14 @@
+clusters id
+%ID
+alignment length
+mismatches
+gap opens
+evalue
+bit score
+qcovs
+DB id
+tax id
+Family
+Genus
+Species
+sequence
