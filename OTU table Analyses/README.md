@@ -18,17 +18,97 @@ metadatas$Run_Barcod <- paste0(metadatas$Run.name,"_barcode",metadatas$Barcod,"_
 
 ## Reading OTU table file 
 ```r
-Res <- read.table(file='BLAST_out_reclustered_summary_tax_seq_counts.txt',sep ="\t", header = T, na.string = "")
 
-# Remove Homo sapiens reads 
+
+###############################################################################b
+#####                    Results From Decona                               #####
+###############################################################################b
+
+Res <- read.table(file='Res_Decona/BLAST_out_reclustered_summary_tax_seq_counts.txt',sep ="\t", header = T, na.string = "")
+
+# Retirer la contamination Homo Sapiens 
 Res <- Res[-which(Res$tax.id == "9606"),]
 
-Res_melt <- Melting(Res, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
+rownames(Res) <- Res$clusters.id
 
-100 * sum(subset(Res_melt,Res_melt$Family=="unknown")$Nb.reads)/sum(Res_melt$Nb.reads) # 2.29% of unknown
 
-Tax_melt <- Res_melt %>%
-  group_by(tax.id, Sample.ID, Replica, Family) %>%
+###############################################################################b
+####                             Rarefaction                               #####
+###############################################################################b
+
+Tab_raw <- Res[,15:dim(Res)[2]]
+#Tab_raw[is.na(Tab_raw)] <- 0 
+
+#total number of species at each site (row of data)
+S <- vegan::specnumber(t(Tab_raw))
+
+# Number of INDIVIDULS per site
+raremax <- min(rowSums(t(Tab_raw), na.rm = T)) 
+
+# rarefy, w/ raremax as input
+Srare <- vegan::rarefy(t(Tab_raw), raremax)
+Tab_raw
+Srare
+
+#Plot rarefaction results
+pdf(paste0(Images_path,"rarefaction.pdf"), width = 9, height = 6)
+#par(mfrow = c(1,2))
+plot(S, Srare, xlab = "Observed No. of Species", 
+     ylab = "Rarefied No. of Species",
+     main = "plot(rarefy(Tab, raremax))", 
+     xlim = c(0,max(S,Srare)), 
+     ylim = c(0,max(S,Srare)))
+abline(0, 1)
+vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F,
+                 main = "rarecurve() on subset of data")
+dev.off()
+c(S-Srare)[order(S-Srare, decreasing = T)]
+
+Tab_rar <- vegan::rrarefy(t(Tab_raw), raremax)
+
+Tab_rar <- as.data.frame(t(Tab_rar))
+Tab_rar$clusters.id <- row.names(Tab_rar)
+Res_rar <- dplyr::right_join(as.data.frame(Res)[,c(1:14)], Tab_rar, by = c("clusters.id" = "clusters.id"))
+
+
+#### melting
+
+Res_melt <- Melting_x(Res, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
+Res_melt_rar <- Melting_x(Res_rar, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
+
+unique(Res_melt$Sample.ID)
+
+Res_melt_rar <- Res_melt_rar[-which(is.na(Res_melt_rar$Nb.reads)),]
+
+100 * sum(subset(Res_melt,Res_melt$Family=="unknown")$Nb.reads)/sum(Res_melt$Nb.reads) # 2.29% de unknown # 1.02 % de unknown
+100 * sum(subset(Res_melt_rar,Res_melt_rar$Family=="unknown")$Nb.reads)/sum(Res_melt_rar$Nb.reads) # 2.29% de unknown # 2.21% de unknown
+
+# Copying Figure 2 from  https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0176343
+
+Tab <- reshape2::acast(Res_melt, value.var = "Nb.reads", clusters.id~Sample.ID, fill = 0, fun.aggregate = sum)
+Tab <- reshape2::acast(Res_melt_rar, value.var = "Nb.reads", clusters.id~Sample.ID, fill = 0, fun.aggregate = sum)
+df <- Replica_OTU(Tab, col = c(1, 4, 7, 10, 17, 20, 23, 26, 29, 32, 35, 38))
+
+df$sample <- rownames(df)
+df_plot  <- reshape2::melt(df, id = "sample", variable.name = "replicas", value.name = "pc")
+df_plot$sample <- substr(df_plot$sample, 1, nchar(df_plot$sample) - 2)
+
+df_plot
+
+ggplot(df_plot, aes(x = sample, y = pc, fill = replicas)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = "Sample", y = "% of OTUs Identified", fill = "Replicas") + 
+  scale_fill_manual(values = c("3 replicates"= "grey95", "2 replicates" = "grey75", "1 replicate" = "grey50"))
+ggsave(path = Images_path, "Triplicates_Homogeneity.svg", width = 5, height = 4)
+
+###############################################################################b
+#######                 Switch from OTUs to Species taxa                ########
+###############################################################################b
+
+
+Tax_melt <- Res_melt_rar %>%
+  group_by(tax.id, Sample.ID, Replica, Family, Taxon) %>%
   summarise(
     Nb.reads_sum = sum(Nb.reads),
     X.ID_mean = weighted.mean(X.ID, Nb.reads),
@@ -46,13 +126,30 @@ Tax_melt <- Res_melt %>%
   ) %>%
   ungroup()
 
-Tax_melt[which(Tax_melt$bit.score_mean < 200),"Taxon"] <- "unknown unknown"
-Tax_melt[which(Tax_melt$bit.score_mean < 200),"Family"] <- "unknown"
-Tax_melt[which(Tax_melt$bit.score_mean < 200),"X.ID_mean"] <- NA
+Tax_melt$Sample.Type <- "eDNA"
 
-100 * sum(subset(Tax_melt,Tax_melt$Family=="unknown")$Nb.reads_sum)/sum(Tax_melt$Nb.reads_sum) # 3.77% of unknown
 
+p <- ggplot(Tax_melt, aes(x=bit.score_mean, y=alignment.length_mean)) + geom_point()
+# with marginal histogram
+ggExtra::ggMarginal(p, type="density")
+
+ggplot(Tax_melt, aes(x = Sample.Type, y = bit.score_mean)) + 
+  geom_violin()
+
+
+# Assigning to unknown assignation with bit.score inferior to 250
+Tax_melt[which(Tax_melt$bit.score_mean < 250),"Taxon"] <- "unknown unknown"
+Tax_melt[which(Tax_melt$bit.score_mean < 250),"Family"] <- "unknown"
+Tax_melt[which(Tax_melt$bit.score_mean < 250),"X.ID_mean"] <- NA
+
+# Checking assignation with a aligment length superior to 175 and inferieur to 160 which are unexepected.
+unique(Tax_melt[which(Tax_melt$alignment.length_mean > 175), "Taxon"])
+unique(Tax_melt[which(Tax_melt$alignment.length_mean < 160), "Taxon"])
+
+100 * sum(subset(Tax_melt,Tax_melt$Family=="unknown")$Nb.reads_sum)/sum(Tax_melt$Nb.reads_sum) # 3.16% of unknown reads
 Tax_table <- reshape2::acast(Tax_melt, value.var = "Nb.reads_sum", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
+Tax_table <- reshape2::acast(Tax_melt, value.var = "relative_biomass", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
+
 ```
 
 ## Creating a phyloseq object
@@ -73,8 +170,6 @@ physeq <- phyloseq::phyloseq(OTUs, TAX, SAMPLE)
 
 physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 
-# Rarefy
-physeq <- phyloseq::rarefy_even_depth(physeq, rngseed=1, sample.size=0.9*min(phyloseq::sample_sums(physeq)), replace=F)
 ```
 
 # Figure 1 : Porosity - Alpha Diversity 
