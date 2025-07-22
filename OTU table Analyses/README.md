@@ -224,7 +224,6 @@ dev.off()
 # Figure 3: Barplot - Robot vs Tripod
 <img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
 
-![image](Figures/Figure3.png)
 ```r
 top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
 
