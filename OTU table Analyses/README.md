@@ -242,57 +242,11 @@ plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_l
 ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
 
-# Figure 4: Barplot for each taxon - Robot vs Tripode
+# Figure 4: Alpha Diversity - Volume
 <div style="text-align: center;">
 <img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
 </div>
 
-```r
-df <- subset(Tax_melt_wV, Replicas.Nb != "Control" & Replicas.Nb != 0) %>%
-  group_by(Sample.ID) %>%
-  mutate(total_abundance = sum(Nb.reads_sum)) %>%  # Compute total abundance for each sample
-  ungroup() %>%
-  mutate(relative_abundance = (Nb.reads_sum / total_abundance) * 100) %>%  # Compute relative abundance
-  # Complete the data for each combination of Taxon and Method, adding zeros where data is missing
-  tidyr::complete(Taxon, Method, fill = list(relative_abundance = 0))  %>% # Ensure missing combinations have relative_abundance set to 0
-  # Sort by relative_abundance within each method
-  arrange(Method, relative_abundance) %>%
-  # Force the order of Taxa based on relative abundance in each method
-  mutate(Taxon = factor(Taxon, levels = unique(Taxon)))  %>% # Update factor levels for Taxon
-  mutate(Method = recode(Method, "Tripode" = "Tripod"))
-
-# Compute the maximum relative abundance per taxon
-taxon_order <- df %>%
-  group_by(Taxon) %>%
-  summarise(max_abundance = max(relative_abundance, na.rm = TRUE)) %>%
-  arrange(max_abundance) %>%
-  pull(Taxon)
-
-# Update Taxon factor levels based on maximum abundance
-df_ordered <- df %>%
-  mutate(Taxon = factor(Taxon, levels = taxon_order))
-
-sum(df$relative_abundance, na.rm = T)
-
-ggplot(df_ordered, aes(x = Taxon, y = relative_abundance, fill = Method)) +
-  geom_bar(stat = "identity", position = "dodge",  width = 0.5) +
-  scale_fill_manual(values = c("Robot" = "#4A90E2", "Tripod" = "#F5A623", "Visual Census" = "#50E3C2")) +
-  labs(
-    title = "Average Relative Abundance of Species by Method",
-    x = "Species",
-    y = "Average Relative Abundance",
-    fill = "Method"
-  ) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  coord_flip()  # Flip the axes for better readability
-
-ggsave(path = Images_path, filename = "RelativeAbundance_wVC.svg", width = 12, height = 6)
-```
-
-# Figure 5: Alpha Diversity - Volume
-<div style="text-align: center;">
-<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
-</div>
 
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -322,10 +276,9 @@ p2
 (p1 | p2 ) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
-
-# Figure 6: Accumulation curves - Sampling Replicates
+# Figure 5: Accumulation curves - Sampling Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
+<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
 </div>
 
 ```r
@@ -336,10 +289,9 @@ plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue",
     main = "Species Accumulation curve", xlab = "Replicas", ylab = "Number of species")
 dev.off()
 ```
-
-# Figure 7: PCR Replicates
+# Figure 6: PCR Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
 </div>
 
 ```r
@@ -396,36 +348,29 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
 (p1 | p2) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 4)
 ```
-
-# Figure 8: Sequencing depth
+# Figure 7: Sequencing depth
 <div style="text-align: center;">
-<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
+<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
 </div>
 
 ```r
-Tab_raw <- Tax_table
-Tab_raw[is.na(Tab_raw)] <- 0 
-
-#total number of species at each site (row of data)
-S <- vegan::specnumber(t(Tab_raw))
-
-# Number of Taxon per sample
-raremax <- min(rowSums(t(Tab_raw), na.rm = T)) 
-
-# rarefy, w/ raremax as input
-Srare <- vegan::rarefy(t(Tab_raw), raremax)
-
-#Plot rarefaction results
-par(mfrow = c(1,2))
-plot(S, Srare, xlab = "Observed No. of Species", ylab = "Rarefied No. of Species")
+pdf(paste0(Images_path,"rarefaction.pdf"), width = 9, height = 6)
+#par(mfrow = c(1,2))
+plot(S, Srare, xlab = "Observed No. of Species", 
+     ylab = "Rarefied No. of Species",
+     main = "plot(rarefy(Tab, raremax))", 
+     xlim = c(0,max(S,Srare)), 
+     ylim = c(0,max(S,Srare)))
 abline(0, 1)
-vegan::rarecurve(t(Tab_raw), step = 20,  sample = raremax,  col = "blue",  cex = 0.6)
+vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F, 
+                 ylab = "Number of OTUs",
+                 xlab = "Sample Size")
 dev.off()
 ```
 
-# Figure 9: Distance matrix - Tiahura 
+# Figure 8: Distance matrix - Tiahura 
 <div style="text-align: center;">
-<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
 </div>
 
 ```r
@@ -436,9 +381,11 @@ pheatmap::pheatmap(as.matrix(dist.jc$beta.jac), cluster_rows = F, cluster_cols =
 pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "BrayCurtis")
 ```
 
-# Figure 10: PCoA - Tiahura
+
+# Figure 9: PCoA - Tiahura
 <div style="text-align: center;">
-<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
+<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+</div>
 
 ```r
 #Performing PCOA
@@ -462,10 +409,10 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   scale_color_brewer(palette = "Paired")
 ```
 
+
 # Figure 10: Barplot Activity - Along24h
 <div style="text-align: center;">
-<img src="Figures/Figure10.png" alt="Figure 11" width="50%"/>
-</div>
+<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
 
 ```r
 p <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
@@ -479,9 +426,10 @@ p + xlab("20L Replicates") +
 ggsave(path = Images_path, "Barplot_Activity.svg", width = 15, height = 9)
 ```
 
+
 # Figure 11: Nocturnal activity ratio
 <div style="text-align: center;">
-<img src="Figures/Figure11.png" alt="Figure 12" width="50%"/>
+<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
 </div>
 
 ```r
