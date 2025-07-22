@@ -174,7 +174,8 @@ physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 ```
 
 # Figure 1 : Porosity - Alpha Diversity 
-![image](Figures/Figure1.png)
+<img src="Figures/Figure1.png" alt="Figure 1" width="50%"/>
+
 ```r
 rich <- phyloseq::estimate_richness(physeq, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
 data <- merge(as.data.frame(phyloseq::sample_data(physeq)), rich, by.x = "row.names", by.y = "row.names")
@@ -204,7 +205,8 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 
 
 # Figure 2: Euler plot - Robot vs Tripod
-![image](Figures/Figure2.png)
+<img src="Figures/Figure2.png" alt="Figure 2" width="50%"/>
+
 ```r
 Tab_Euler <- Tax_melt_wV
 Tab_Euler <- aggregate(as.numeric(Tab_Euler$relative_abundance), by= list(Method = Tab_Euler$Method, Species = Tab_Euler$Taxon), mean)
@@ -235,8 +237,9 @@ plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_l
 ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
 
-# Figure 4 : Barplot for each taxon - Robot vs Tripode
-![image](Figures/Figure4.png)
+# Figure 4: Barplot for each taxon - Robot vs Tripode
+<img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
+
 ```r
 df <- subset(Tax_melt_wV, Replicas.Nb != "Control" & Replicas.Nb != 0) %>%
   group_by(Sample.ID) %>%
@@ -279,8 +282,9 @@ ggplot(df_ordered, aes(x = Taxon, y = relative_abundance, fill = Method)) +
 ggsave(path = Images_path, filename = "RelativeAbundance_wVC.svg", width = 12, height = 6)
 ```
 
-# Figure 5 : Alpha Diversity - Volume
-![image](Figures/Figure5.png)
+# Figure 5: Alpha Diversity - Volume
+<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
+
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
 data <- merge(as.data.frame(phyloseq::sample_data(physeq_wout_Ctrl)), rich, by.x = "row.names", by.y = "row.names")
@@ -310,8 +314,9 @@ p2
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
 
-# Figure 6 : Accumulation curves - Sampling Replicates
-![image](Figures/Figure6.png)
+# Figure 6: Accumulation curves - Sampling Replicates
+<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
+
 ```r
 sp <- vegan::specaccum(t(Tax_table), method = "collector")
 
@@ -321,8 +326,9 @@ plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue",
 dev.off()
 ```
 
-# Figure 7 : PCR Replicates
-![image](Figures/Figure7.png)
+# Figure 7: PCR Replicates
+<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+
 ```r
 Nb <- data.frame(Nb_OTUs = colSums(Tax_table != 0 ), 
                 Origin = stringr::str_split(colnames(Tax_table), "_", simplify= T)[,1],
@@ -378,8 +384,9 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
 ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 4)
 ```
 
-# Figure 8 : Sequencing depth
-![image](Figures/Figure8.png)
+# Figure 8: Sequencing depth
+<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
+
 ```r
 Tab_raw <- Tax_table
 Tab_raw[is.na(Tab_raw)] <- 0 
@@ -401,8 +408,9 @@ vegan::rarecurve(t(Tab_raw), step = 20,  sample = raremax,  col = "blue",  cex =
 dev.off()
 ```
 
-# Figure 9 : Distance matrix - Tiahura 
-![image](Figures/Figure9.png)
+# Figure 9: Distance matrix - Tiahura 
+<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+
 ```r
 dist.jc. <- betapart::beta.pair(t(ifelse(Tax_table != 0, 1, 0)), index.family="jaccard")
 dist.bc. <- vegan::vegdist(t(Tax_table), method = "bray")
@@ -411,8 +419,9 @@ pheatmap::pheatmap(as.matrix(dist.jc$beta.jac), cluster_rows = F, cluster_cols =
 pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "BrayCurtis")
 ```
 
-# Figure 10 : PCoA - Tiahura
-![image](Figures/Figure10.png)
+# Figure 10: PCoA - Tiahura
+<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
+
 ```r
 #Performing PCOA
 pcoa <- cmdscale(dist.jc.both$beta.jac, eig = T, add = T)
@@ -435,8 +444,9 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   scale_color_brewer(palette = "Paired")
 ```
 
-# Figure 11 : Barplot Activity - Along24h
-![image](Figures/Figure11.png)
+# Figure 11: Barplot Activity - Along24h
+<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+
 ```r
 p <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
   scale_color_manual(na.value = "grey50") + 
@@ -449,8 +459,9 @@ p + xlab("20L Replicates") +
 ggsave(path = Images_path, "Barplot_Activity.svg", width = 15, height = 9)
 ```
 
-# Figure 12 : Nocturnal activity ratio
-![image](Figures/Figure12.png)
+# Figure 12: Nocturnal activity ratio
+<img src="Figures/Figure12.png" alt="Figure 12" width="50%"/>
+
 ```r
 data <- Tax_melt[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
 
