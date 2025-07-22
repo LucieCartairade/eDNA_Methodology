@@ -222,7 +222,7 @@ dev.off()
 ```
 
 # Figure 3: Barplot - Robot vs Tripod
-<img src="Figures/Figure3.png" alt="Figure 3" width="200"/>
+<img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
 
 ![image](Figures/Figure3.png)
 ```r
