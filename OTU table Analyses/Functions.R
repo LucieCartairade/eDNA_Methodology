@@ -1,15 +1,15 @@
-Melting <- function(Res, metadatas_selected_col)
+Melting_x <- function(Res, x= 15, metadatas_selected_col)
 {
-  Res_melt <- reshape2::melt(Res[,c(1,15:dim(Res)[2])], id = "clusters.id", variable.name = "Run_Barcod", value.name = "Nb.reads")
+  Res_melt <- reshape2::melt(Res[,c(1,x:dim(Res)[2])], id = "clusters.id", variable.name = "Run_Barcod", value.name = "Nb.reads")
   Res_melt <- Res_melt[Res_melt$Nb.reads != 0,]
-  Res_melt <- merge(Res_melt,Res[,c(1:14)], by = "clusters.id", all = T)
+  Res_melt <- merge(Res_melt,Res[,c(1:(x-1))], by = "clusters.id", all = T)
   Res_melt <- merge(Res_melt, metadatas[,metadatas_selected_col], by = "Run_Barcod", all = T)
   # Remove samples that haven't any result
   Res_melt <- Res_melt[!is.na(Res_melt$clusters.id),]
   # Creating Taxon column
   Res_melt[which(is.na(Res_melt$Family)),c("Family","Genus","Species")] <- "unknown"
   Res_melt$Taxon <- ifelse(is.na(Res_melt$Genus), Res_melt$Family,paste(Res_melt$Genus, Res_melt$Species))
-  unique(Res_melt$Taxon)
+  #unique(Res_melt$Taxon)
   return(Res_melt)
 }
 

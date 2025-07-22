@@ -21,16 +21,15 @@ metadatas$Run_Barcod <- paste0(metadatas$Run.name,"_barcode",metadatas$Barcod,"_
 
 
 ###############################################################################b
-#####                    Results From Decona                               #####
+#####                    Read results From Decona                          #####
 ###############################################################################b
 
 Res <- read.table(file='Res_Decona/BLAST_out_reclustered_summary_tax_seq_counts.txt',sep ="\t", header = T, na.string = "")
 
-# Retirer la contamination Homo Sapiens 
+# Remove Homo sapiens reads
 Res <- Res[-which(Res$tax.id == "9606"),]
 
 rownames(Res) <- Res$clusters.id
-
 
 ###############################################################################b
 ####                             Rarefaction                               #####
@@ -62,6 +61,7 @@ abline(0, 1)
 vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F,
                  main = "rarecurve() on subset of data")
 dev.off()
+
 c(S-Srare)[order(S-Srare, decreasing = T)]
 
 Tab_rar <- vegan::rrarefy(t(Tab_raw), raremax)
@@ -71,17 +71,15 @@ Tab_rar$clusters.id <- row.names(Tab_rar)
 Res_rar <- dplyr::right_join(as.data.frame(Res)[,c(1:14)], Tab_rar, by = c("clusters.id" = "clusters.id"))
 
 
-#### melting
 
+# Switch from a table dataframe to melt format and merge metadatas informations. 
 Res_melt <- Melting_x(Res, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
 Res_melt_rar <- Melting_x(Res_rar, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
-
-unique(Res_melt$Sample.ID)
-
 Res_melt_rar <- Res_melt_rar[-which(is.na(Res_melt_rar$Nb.reads)),]
 
-100 * sum(subset(Res_melt,Res_melt$Family=="unknown")$Nb.reads)/sum(Res_melt$Nb.reads) # 2.29% de unknown # 1.02 % de unknown
-100 * sum(subset(Res_melt_rar,Res_melt_rar$Family=="unknown")$Nb.reads)/sum(Res_melt_rar$Nb.reads) # 2.29% de unknown # 2.21% de unknown
+# Checking unknowns ratio
+100 * sum(subset(Res_melt,Res_melt$Family=="unknown")$Nb.reads)/sum(Res_melt$Nb.reads)
+100 * sum(subset(Res_melt_rar,Res_melt_rar$Family=="unknown")$Nb.reads)/sum(Res_melt_rar$Nb.reads)
 
 # Copying Figure 2 from  https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0176343
 
@@ -107,6 +105,9 @@ ggsave(path = Images_path, "Triplicates_Homogeneity.svg", width = 5, height = 4)
 ###############################################################################b
 
 
+# Group by Taxonomic assignation (tax.id) and Sample
+# mean all parameters weigthed by the number of reads
+# keep the most representative sequence
 Tax_melt <- Res_melt_rar %>%
   group_by(tax.id, Sample.ID, Replica, Family, Taxon) %>%
   summarise(
@@ -128,13 +129,10 @@ Tax_melt <- Res_melt_rar %>%
 
 Tax_melt$Sample.Type <- "eDNA"
 
-
+# geom_pont() plot to visualize distribution between bitscore and alignment.length
 p <- ggplot(Tax_melt, aes(x=bit.score_mean, y=alignment.length_mean)) + geom_point()
-# with marginal histogram
+# add marginal histogram
 ggExtra::ggMarginal(p, type="density")
-
-ggplot(Tax_melt, aes(x = Sample.Type, y = bit.score_mean)) + 
-  geom_violin()
 
 
 # Assigning to unknown assignation with bit.score inferior to 250
@@ -146,7 +144,10 @@ Tax_melt[which(Tax_melt$bit.score_mean < 250),"X.ID_mean"] <- NA
 unique(Tax_melt[which(Tax_melt$alignment.length_mean > 175), "Taxon"])
 unique(Tax_melt[which(Tax_melt$alignment.length_mean < 160), "Taxon"])
 
-100 * sum(subset(Tax_melt,Tax_melt$Family=="unknown")$Nb.reads_sum)/sum(Tax_melt$Nb.reads_sum) # 3.16% of unknown reads
+# Checking the unknown reads ratio
+100 * sum(subset(Tax_melt,Tax_melt$Family=="unknown")$Nb.reads_sum)/sum(Tax_melt$Nb.reads_sum)
+
+# Transforming from melt format to table format
 Tax_table <- reshape2::acast(Tax_melt, value.var = "Nb.reads_sum", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
 Tax_table <- reshape2::acast(Tax_melt, value.var = "relative_biomass", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
 
@@ -200,21 +201,10 @@ p2 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = 
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 ```
 
-# Figure 2 : Barplot - Robot vs Tripod
+
+
+# Figure 2: Euler plot - Robot vs Tripod
 ![image](Figures/Figure2.png)
-```r
-top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
-
-plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Rep",
-                      palette = c(unknown = "gray50"), merged_clr = "black", legend_title = "Species") +
-  facet_grid(~Method, scales = "free_x", space = "free_x") + 
-  xlab("20L Replica")
-
-ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
-```
-
-# Figure 3 : Euler plot - Robot vs Tripod
-![image](Figures/Figure3.png)
 ```r
 Tab_Euler <- Tax_melt_wV
 Tab_Euler <- aggregate(as.numeric(Tab_Euler$relative_abundance), by= list(Method = Tab_Euler$Method, Species = Tab_Euler$Taxon), mean)
@@ -229,6 +219,21 @@ pdf(file = paste0(Images_path,"Euler_plot.pdf"), width = 5, height = 5)
 set.seed(19980821)
 plot(eulerr::euler(Tab_Euler_final, shape = "ellipse"), fills = c("#4A90E2", "#F5A623", "#50E3C2"), quantities = TRUE, alpha = 0.5)
 dev.off()
+```
+
+# Figure 3: Barplot - Robot vs Tripod
+<img src="Figures/Figure3.png" alt="Figure 3" width="200"/>
+
+![image](Figures/Figure3.png)
+```r
+top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
+
+plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Rep",
+                      palette = c(unknown = "gray50"), merged_clr = "black", legend_title = "Species") +
+  facet_grid(~Method, scales = "free_x", space = "free_x") + 
+  xlab("20L Replica")
+
+ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
 
 # Figure 4 : Barplot for each taxon - Robot vs Tripode
