@@ -104,7 +104,6 @@ ggsave(path = Images_path, "Triplicates_Homogeneity.svg", width = 5, height = 4)
 #######                 Switch from OTUs to Species taxa                ########
 ###############################################################################b
 
-
 # Group by Taxonomic assignation (tax.id) and Sample
 # mean all parameters weigthed by the number of reads
 # keep the most representative sequence
@@ -174,7 +173,9 @@ physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 ```
 
 # Figure 1 : Porosity - Alpha Diversity 
-<img src="Figures/Figure1.png" alt="Figure 1" width="50%"/>
+<div style="text-align: center;">
+<img src="Figures/Figure1.png" alt="Figure 1" class="center" width="50%"/>
+</div>
 
 ```r
 rich <- phyloseq::estimate_richness(physeq, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -205,7 +206,9 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 
 
 # Figure 2: Euler plot - Robot vs Tripod
+<div style="text-align: center;">
 <img src="Figures/Figure2.png" alt="Figure 2" width="50%"/>
+</div>
 
 ```r
 Tab_Euler <- Tax_melt_wV
@@ -224,7 +227,9 @@ dev.off()
 ```
 
 # Figure 3: Barplot - Robot vs Tripod
+<div style="text-align: center;">
 <img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
+</div>
 
 ```r
 top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
@@ -238,7 +243,9 @@ ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width 
 ```
 
 # Figure 4: Barplot for each taxon - Robot vs Tripode
+<div style="text-align: center;">
 <img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
+</div>
 
 ```r
 df <- subset(Tax_melt_wV, Replicas.Nb != "Control" & Replicas.Nb != 0) %>%
@@ -283,7 +290,9 @@ ggsave(path = Images_path, filename = "RelativeAbundance_wVC.svg", width = 12, h
 ```
 
 # Figure 5: Alpha Diversity - Volume
+<div style="text-align: center;">
 <img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
+</div>
 
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -315,7 +324,9 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
 
 # Figure 6: Accumulation curves - Sampling Replicates
+<div style="text-align: center;">
 <img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
+</div>
 
 ```r
 sp <- vegan::specaccum(t(Tax_table), method = "collector")
@@ -327,7 +338,9 @@ dev.off()
 ```
 
 # Figure 7: PCR Replicates
+<div style="text-align: center;">
 <img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+</div>
 
 ```r
 Nb <- data.frame(Nb_OTUs = colSums(Tax_table != 0 ), 
@@ -385,7 +398,9 @@ ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 
 ```
 
 # Figure 8: Sequencing depth
+<div style="text-align: center;">
 <img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
+</div>
 
 ```r
 Tab_raw <- Tax_table
@@ -409,7 +424,9 @@ dev.off()
 ```
 
 # Figure 9: Distance matrix - Tiahura 
+<div style="text-align: center;">
 <img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+</div>
 
 ```r
 dist.jc. <- betapart::beta.pair(t(ifelse(Tax_table != 0, 1, 0)), index.family="jaccard")
@@ -420,6 +437,7 @@ pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellw
 ```
 
 # Figure 10: PCoA - Tiahura
+<div style="text-align: center;">
 <img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
 
 ```r
@@ -444,8 +462,10 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   scale_color_brewer(palette = "Paired")
 ```
 
-# Figure 11: Barplot Activity - Along24h
-<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+# Figure 10: Barplot Activity - Along24h
+<div style="text-align: center;">
+<img src="Figures/Figure10.png" alt="Figure 11" width="50%"/>
+</div>
 
 ```r
 p <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
@@ -459,8 +479,10 @@ p + xlab("20L Replicates") +
 ggsave(path = Images_path, "Barplot_Activity.svg", width = 15, height = 9)
 ```
 
-# Figure 12: Nocturnal activity ratio
-<img src="Figures/Figure12.png" alt="Figure 12" width="50%"/>
+# Figure 11: Nocturnal activity ratio
+<div style="text-align: center;">
+<img src="Figures/Figure11.png" alt="Figure 12" width="50%"/>
+</div>
 
 ```r
 data <- Tax_melt[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
