@@ -15,26 +15,17 @@ metadatas$Barcod <- sprintf("%02d",metadatas$Barcod)
 # match sample names with OTU table
 metadatas$Run_Barcod <- paste0(metadatas$Run.name,"_barcode",metadatas$Barcod,"_concatenated")
 ```
-
 ## Reading OTU table file 
 ```r
-
-
-###############################################################################b
-#####                    Read results From Decona                          #####
-###############################################################################b
-
 Res <- read.table(file='Res_Decona/BLAST_out_reclustered_summary_tax_seq_counts.txt',sep ="\t", header = T, na.string = "")
 
 # Remove Homo sapiens reads
 Res <- Res[-which(Res$tax.id == "9606"),]
 
 rownames(Res) <- Res$clusters.id
-
-###############################################################################b
-####                             Rarefaction                               #####
-###############################################################################b
-
+```
+## Rarefaction
+```r
 Tab_raw <- Res[,15:dim(Res)[2]]
 #Tab_raw[is.na(Tab_raw)] <- 0 
 
@@ -69,10 +60,9 @@ Tab_rar <- vegan::rrarefy(t(Tab_raw), raremax)
 Tab_rar <- as.data.frame(t(Tab_rar))
 Tab_rar$clusters.id <- row.names(Tab_rar)
 Res_rar <- dplyr::right_join(as.data.frame(Res)[,c(1:14)], Tab_rar, by = c("clusters.id" = "clusters.id"))
-
-
-
-# Switch from a table dataframe to melt format and merge metadatas informations. 
+```
+## Switch from a table dataframe to melt format and merge metadatas informations. 
+```r
 Res_melt <- Melting_x(Res, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
 Res_melt_rar <- Melting_x(Res_rar, x = 15, metadatas_selected_col = c("Run_Barcod","Sample.ID","Replica"))
 Res_melt_rar <- Res_melt_rar[-which(is.na(Res_melt_rar$Nb.reads)),]
@@ -99,11 +89,9 @@ ggplot(df_plot, aes(x = sample, y = pc, fill = replicas)) +
   labs(x = "Sample", y = "% of OTUs Identified", fill = "Replicas") + 
   scale_fill_manual(values = c("3 replicates"= "grey95", "2 replicates" = "grey75", "1 replicate" = "grey50"))
 ggsave(path = Images_path, "Triplicates_Homogeneity.svg", width = 5, height = 4)
-
-###############################################################################b
-#######                 Switch from OTUs to Species taxa                ########
-###############################################################################b
-
+```
+## Group OTUs by Species taxa
+```r
 # Group by Taxonomic assignation (tax.id) and Sample
 # mean all parameters weigthed by the number of reads
 # keep the most representative sequence
@@ -133,7 +121,6 @@ p <- ggplot(Tax_melt, aes(x=bit.score_mean, y=alignment.length_mean)) + geom_poi
 # add marginal histogram
 ggExtra::ggMarginal(p, type="density")
 
-
 # Assigning to unknown assignation with bit.score inferior to 250
 Tax_melt[which(Tax_melt$bit.score_mean < 250),"Taxon"] <- "unknown unknown"
 Tax_melt[which(Tax_melt$bit.score_mean < 250),"Family"] <- "unknown"
@@ -149,9 +136,7 @@ unique(Tax_melt[which(Tax_melt$alignment.length_mean < 160), "Taxon"])
 # Transforming from melt format to table format
 Tax_table <- reshape2::acast(Tax_melt, value.var = "Nb.reads_sum", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
 Tax_table <- reshape2::acast(Tax_melt, value.var = "relative_biomass", Taxon~Sample.ID, fill = 0, fun.aggregate = sum)
-
 ```
-
 ## Creating a phyloseq object
 ```r
 # OTUs object
@@ -171,10 +156,9 @@ physeq <- phyloseq::phyloseq(OTUs, TAX, SAMPLE)
 physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 
 ```
-
-# Figure 1 : Porosity - Alpha Diversity 
+# Figure 2 : Porosity - Alpha Diversity 
 <div style="text-align: center;">
-<img src="Figures/Figure1.png" alt="Figure 1" class="center" width="50%"/>
+<img src="Figures/Figure2.png" alt="Figure 1" class="center" width="50%"/>
 </div>
 
 ```r
@@ -202,12 +186,9 @@ p2 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = 
 (p1 | p2) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 ```
-
-
-
-# Figure 2: Euler plot - Robot vs Tripod
+# Figure 3: Euler plot - Robot vs Tripod
 <div style="text-align: center;">
-<img src="Figures/Figure2.png" alt="Figure 2" width="50%"/>
+<img src="Figures/Figure3.png" alt="Figure 2" width="50%"/>
 </div>
 
 ```r
@@ -225,10 +206,9 @@ set.seed(19980821)
 plot(eulerr::euler(Tab_Euler_final, shape = "ellipse"), fills = c("#4A90E2", "#F5A623", "#50E3C2"), quantities = TRUE, alpha = 0.5)
 dev.off()
 ```
-
-# Figure 3: Barplot - Robot vs Tripod
+# Figure 4: Barplot - Robot vs Tripod
 <div style="text-align: center;">
-<img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
+<img src="Figures/Figure4.png" alt="Figure 3" width="50%"/>
 </div>
 
 ```r
@@ -241,12 +221,10 @@ plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_l
 
 ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
-
-# Figure 4: Alpha Diversity - Volume
+# Figure 5: Alpha Diversity - Volume
 <div style="text-align: center;">
-<img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
+<img src="Figures/Figure5.png" alt="Figure 4" width="50%"/>
 </div>
-
 
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -276,9 +254,9 @@ p2
 (p1 | p2 ) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
-# Figure 5: Accumulation curves - Sampling Replicates
+# Figure 6: Accumulation curves - Sampling Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
+<img src="Figures/Figure6.png" alt="Figure 5" width="50%"/>
 </div>
 
 ```r
@@ -289,9 +267,9 @@ plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue",
     main = "Species Accumulation curve", xlab = "Replicas", ylab = "Number of species")
 dev.off()
 ```
-# Figure 6: PCR Replicates
+# Figure 7: PCR Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
+<img src="Figures/Figure7.png" alt="Figure 6" width="50%"/>
 </div>
 
 ```r
@@ -348,9 +326,9 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
 (p1 | p2) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 4)
 ```
-# Figure 7: Sequencing depth
+# Figure 8: Sequencing depth
 <div style="text-align: center;">
-<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+<img src="Figures/Figure8.png" alt="Figure 7" width="50%"/>
 </div>
 
 ```r
@@ -367,10 +345,9 @@ vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.
                  xlab = "Sample Size")
 dev.off()
 ```
-
-# Figure 8: Distance matrix - Tiahura 
+# Figure 9: Distance matrix - Tiahura 
 <div style="text-align: center;">
-<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
+<img src="Figures/Figure9.png" alt="Figure 8" width="50%"/>
 </div>
 
 ```r
@@ -380,11 +357,9 @@ dist.bc. <- vegan::vegdist(t(Tax_table), method = "bray")
 pheatmap::pheatmap(as.matrix(dist.jc$beta.jac), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "Jaccard")
 pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "BrayCurtis")
 ```
-
-
-# Figure 9: PCoA - Tiahura
+# Figure 10: PCoA - Tiahura
 <div style="text-align: center;">
-<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+<img src="Figures/Figure10.png" alt="Figure 9" width="50%"/>
 </div>
 
 ```r
@@ -408,28 +383,26 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   stat_ellipse(aes_string(fill = "Sample.Type"),geom = "polygon", type = "norm", level = 0.9, alpha = 0.2) + 
   scale_color_brewer(palette = "Paired")
 ```
-
-
-# Figure 10: Barplot Activity - Along24h
+# Figure 11: Barplot Activity - Along24h
 <div style="text-align: center;">
-<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
+<img src="Figures/Figure11.png" alt="Figure 10" width="50%"/>
 
 ```r
+palette["nocturnal"] <-"#5a9dad"
+palette["both"] <- "#84cfb0"
+palette["diurnal"] <- "#b7d980"
+
 p <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
   scale_color_manual(na.value = "grey50") + 
-  scale_fill_manual(values= Palette(physeq, "Activity"))
+  scale_fill_manual(values= palette )
 p$data[,"Activity"] <- factor(p$data[,"Activity"], levels = c("nocturnal", "both", "diurnal"))
 p + xlab("20L Replicates") +
   theme(text=element_text(size = 20)) + scale_x_discrete(guide = guide_axis(angle = 0)) + geom_col(color = "black", size = 0.05) + 
   ggh4x::facet_nested(~ Sampling.Time + paste("Day",Sampling.Day), scales = "free", space = "free_x")
-
-ggsave(path = Images_path, "Barplot_Activity.svg", width = 15, height = 9)
 ```
-
-
-# Figure 11: Nocturnal activity ratio
+# Figure 12: Nocturnal activity ratio
 <div style="text-align: center;">
-<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+<img src="Figures/Figure12.png" alt="Figure 11" width="50%"/>
 </div>
 
 ```r
