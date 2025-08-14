@@ -90,8 +90,8 @@ blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident 
 python script_concatenating_double_OTUs.py BLAST_out_reclustered.txt
 
 # Adding taxonomy level to the blast result
-python script_res_blast_summary_to_tax_db241009.py
-python script_res_blast_summary_to_tax_db241104_without_filter.py
+python script_res_blast_summary_to_tax.py
+python script_res_blast_summary_to_tax_without_filter.py
 
 
 # Identifying and adding clusters which do not has a taxonomic assignation at all

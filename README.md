@@ -1,7 +1,9 @@
-# Bioinformatics pipeline
+
 The following command lines is used to generate a unique **OTU table** from `.fast5` files of eDNA metabarcoding data from **Nanopore sequencing technology**.
 
-This repository contains: 
+[Pipeline schema.png]
+
+The Bioinformatic pipeline folder contains: 
 - `ngs_rg_nanopore_run_quality_control-master.tar.gz`: script for checking basecalling and run quality
 - `decona`: decona script from https://github.com/Saskia-Oosterbroek/decona
 - `DB_MiFish_Actino.fasta`: **Zenodo link?** 
@@ -12,6 +14,9 @@ This repository contains:
 - `script_adding_seq_to_res_sum_tax.py`: Adding corresponding consensus sequence to each OTU
 - `script_counting_reads.py`: Counting the number of reads in each OTU cluster and create a matrix OTU table
 
+The OTU table Analyses folder contains R scripts to built figure from *Optimizing a novel eDNA-based framework for Reef Fish Biodiversity monitoring using an Autonomous Filtration Systems and in situ Nanopore Sequencing*. **doi link**
+
+# Bioinformatics pipeline
 ## Basecalling with guppy 
 https://github.com/asadprodhan/GPU-accelerated-guppy-basecalling
 ``` bash 
@@ -36,9 +41,7 @@ ngs_rg_nanopore_run_quality_control --sequencing_summary /path/to/sequencing_sum
 
 deactivate
 ```
-
 ## Demultiplexing with Porechop 
-
 ```bash 
 porechop -i //fastq_source --require_two_barcodes -b //fastq_results --threads 16 --verbosity 2 > output 2>&1
 # -b : demultiplex the reads into bins based on which barcode was found
@@ -51,7 +54,6 @@ porechop -i //fastq_source --require_two_barcodes -b //fastq_results --threads 1
 ```
 ###### Reads Length distribution
 ```bash 
-
 cd ~/fasTmp/$Experiment_name/$Run_name/Res_Porechop/
 wc -l *.fastq | head -n -1 | awk '{printf "%.0f\n", $1/4}' | Rscript -e 'lines <- (readLines ("stdin"));data <- data.frame(NbReads = as.numeric(lines));dotchart(data$NbReads,xlab="Number of reads", labels = c("BC01","BC02","BC03","BC04","BC05","BC06","BC07","BC08","BC09", "BC10", "BC11","BC12", "BC13","BC15","BC23","BC24","none"), main="Number of reads in each barcode file")' ; mv Rplots.pdf DotChart_NbReadsPerBC.pdf
 
@@ -62,7 +64,6 @@ for BC in *.fastq ; do
   mv Rplots.pdf ReadsLength_Distribution_"${BC:0:-6}".pdf
 done
 ```
-
 ``` bash
 for BC in *.fasta ; do
   cut -f2 $BC.fai | awk -v OFS='\t' -v file=${BC:0:-6} '{print $0, file}' >> Size_Distrib.txt
@@ -82,7 +83,6 @@ ggplot(data, aes(x = Size, y = BC)) +
   xlab("Size (pb)") + ylab("Sample")
 ggsave(filename = paste0(path,"SizeDistrib.svg"), width = 10, height = 10)
 ```
-
 ## Decona 
 Run the following command lines for each `$Run_name`:
 ```bash 
@@ -101,11 +101,8 @@ cd /home/eDNA/fasTmp/$Experiment_name/$Run_name/Res_Decona/
 
 decona -l 180 -m 250 -q 10 -c 0.97 -n 10 -k 5 -i /path/to/$Experiment_name/$Run_name/Res_Decona/ -T 32 -fNCAM > /path/to/$Experiment_name/$Run_name/Res_Decona/output_97_n10 2>&1 
 ```
-
 Now, you could call `script_reclustering.sh /path/to/DB250403_MiFish_Actino_v2_modified.fasta /path/to/$Experiment_name/barcode_list.txt /path/to/$Experiment_name/header.txt` or execute these several command lines.
-
 ## Reclustering script
-
 ``` bash
 # Navigate to the root directory of all runs
 rm -rf Res_Decona_all_runs
@@ -165,7 +162,6 @@ cat All_medaka_fastas_all_barcodes_*.fasta >> All_medaka_fastas_all_barcodes_all
 # Reclustering all barcodes together
 cd-hit-est -i All_medaka_fastas_all_barcodes_all_runs.fasta -o 2nd_clust.fasta -c 0.97 -n 5 -d 0 -aS 0.9 -G 0 -M 0 -T 32 -g 1 > output_reclustering 2>&1 
 ```
-
 ### Taxonomic assignation 
 ```bash
 makeblastdb -in $1 -dbtype nucl -parse_seqids
@@ -194,7 +190,6 @@ blastn -query 2nd_clust.fasta -db $1 -perc_identity 80 -outfmt "6 qseqid pident 
   # If this option is not set, BLAST shows all HSPs meeting the expect value criteria. Setting it to one will show only the best HSP for every query-subject pair
 #
 ```
-
 ### OTU table
 ```bash
 # Concatenation match with identical bitscore
@@ -230,4 +225,3 @@ python script_adding_seq_to_res_sum_tax.py
 # Couting reads in each cluster to make one OTU table pour all samples 
 python script_counting_reads.py barcod_list.txt header.txt 
 ```
-
