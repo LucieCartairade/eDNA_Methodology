@@ -157,9 +157,9 @@ physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 
 ```
 # Figure 2 : Porosity - Alpha Diversity 
-<div style="text-align: center;">
-<img src="Figures/Figure2.png" alt="Figure 2" class="center" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure2.png" alt="Figure 2" class="center" width="50%"/>
+</p>
 
 ```r
 rich <- phyloseq::estimate_richness(physeq, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -187,9 +187,9 @@ p2 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = 
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 ```
 # Figure 3: Euler plot - Robot vs Tripod
-<div style="text-align: center;">
-<img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
+</p>
 
 ```r
 Tab_Euler <- Tax_melt_wV
@@ -207,9 +207,9 @@ plot(eulerr::euler(Tab_Euler_final, shape = "ellipse"), fills = c("#4A90E2", "#F
 dev.off()
 ```
 # Figure 4: Barplot - Robot vs Tripod
-<div style="text-align: center;">
-<img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
+</p>
 
 ```r
 top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
@@ -222,9 +222,9 @@ plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_l
 ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
 # Figure 5: Alpha Diversity - Volume
-<div style="text-align: center;">
-<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
+</p>
 
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
@@ -255,9 +255,9 @@ p2
 ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
 # Figure 6: Accumulation curves - Sampling Replicates
-<div style="text-align: center;">
-<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
+</p>
 
 ```r
 sp <- vegan::specaccum(t(Tax_table), method = "collector")
@@ -268,9 +268,9 @@ plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue",
 dev.off()
 ```
 # Figure 7: PCR Replicates
-<div style="text-align: center;">
-<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+</p>
 
 ```r
 Nb <- data.frame(Nb_OTUs = colSums(Tax_table != 0 ), 
@@ -327,9 +327,9 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
 ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 4)
 ```
 # Figure 8: Sequencing depth
-<div style="text-align: center;">
-<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
+</p>
 
 ```r
 pdf(paste0(Images_path,"rarefaction.pdf"), width = 9, height = 6)
@@ -346,9 +346,9 @@ vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.
 dev.off()
 ```
 # Figure 9: Distance matrix - Tiahura 
-<div style="text-align: center;">
-<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+</p>
 
 ```r
 dist.jc. <- betapart::beta.pair(t(ifelse(Tax_table != 0, 1, 0)), index.family="jaccard")
@@ -358,9 +358,9 @@ pheatmap::pheatmap(as.matrix(dist.jc$beta.jac), cluster_rows = F, cluster_cols =
 pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "BrayCurtis")
 ```
 # Figure 10: PCoA - Tiahura
-<div style="text-align: center;">
-<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
+</p>
 
 ```r
 #Performing PCOA
@@ -384,8 +384,9 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   scale_color_brewer(palette = "Paired")
 ```
 # Figure 11: Barplot Activity - Along24h
-<div style="text-align: center;">
-<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+<p align="center">
+  <img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+</p>
 
 ```r
 palette["nocturnal"] <-"#5a9dad"
