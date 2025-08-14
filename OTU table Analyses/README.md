@@ -401,6 +401,7 @@ p + xlab("20L Replicates") +
   ggh4x::facet_nested(~ Sampling.Time + paste("Day",Sampling.Day), scales = "free", space = "free_x")
 ```
 # Figure 12: Nocturnal activity ratio
+
 <div style="text-align: center;">
 <img src="Figures/Figure12.png" alt="Figure 11" width="30%"/>
 </div>
