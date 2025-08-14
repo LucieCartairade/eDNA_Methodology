@@ -402,7 +402,7 @@ p + xlab("20L Replicates") +
 ```
 # Figure 12: Nocturnal activity ratio
 <div style="text-align: center;">
-<img src="Figures/Figure12.png" alt="Figure 11" width="50%"/>
+<img src="Figures/Figure12.png" alt="Figure 11" width="30%"/>
 </div>
 
 ```r
