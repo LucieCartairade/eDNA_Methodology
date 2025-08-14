@@ -158,7 +158,7 @@ physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 ```
 # Figure 2 : Porosity - Alpha Diversity 
 <div style="text-align: center;">
-<img src="Figures/Figure2.png" alt="Figure 1" class="center" width="50%"/>
+<img src="Figures/Figure2.png" alt="Figure 2" class="center" width="50%"/>
 </div>
 
 ```r
@@ -188,7 +188,7 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 ```
 # Figure 3: Euler plot - Robot vs Tripod
 <div style="text-align: center;">
-<img src="Figures/Figure3.png" alt="Figure 2" width="50%"/>
+<img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
 </div>
 
 ```r
@@ -208,7 +208,7 @@ dev.off()
 ```
 # Figure 4: Barplot - Robot vs Tripod
 <div style="text-align: center;">
-<img src="Figures/Figure4.png" alt="Figure 3" width="50%"/>
+<img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
 </div>
 
 ```r
@@ -223,7 +223,7 @@ ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width 
 ```
 # Figure 5: Alpha Diversity - Volume
 <div style="text-align: center;">
-<img src="Figures/Figure5.png" alt="Figure 4" width="50%"/>
+<img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
 </div>
 
 ```r
@@ -256,7 +256,7 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
 ```
 # Figure 6: Accumulation curves - Sampling Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure6.png" alt="Figure 5" width="50%"/>
+<img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
 </div>
 
 ```r
@@ -269,7 +269,7 @@ dev.off()
 ```
 # Figure 7: PCR Replicates
 <div style="text-align: center;">
-<img src="Figures/Figure7.png" alt="Figure 6" width="50%"/>
+<img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
 </div>
 
 ```r
@@ -328,7 +328,7 @@ ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 
 ```
 # Figure 8: Sequencing depth
 <div style="text-align: center;">
-<img src="Figures/Figure8.png" alt="Figure 7" width="50%"/>
+<img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
 </div>
 
 ```r
@@ -347,7 +347,7 @@ dev.off()
 ```
 # Figure 9: Distance matrix - Tiahura 
 <div style="text-align: center;">
-<img src="Figures/Figure9.png" alt="Figure 8" width="50%"/>
+<img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
 </div>
 
 ```r
@@ -359,7 +359,7 @@ pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellw
 ```
 # Figure 10: PCoA - Tiahura
 <div style="text-align: center;">
-<img src="Figures/Figure10.png" alt="Figure 9" width="50%"/>
+<img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
 </div>
 
 ```r
@@ -385,7 +385,7 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
 ```
 # Figure 11: Barplot Activity - Along24h
 <div style="text-align: center;">
-<img src="Figures/Figure11.png" alt="Figure 10" width="50%"/>
+<img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
 
 ```r
 palette["nocturnal"] <-"#5a9dad"
@@ -402,9 +402,9 @@ p + xlab("20L Replicates") +
 ```
 # Figure 12: Nocturnal activity ratio
 
-<div style="text-align: center;">
-<img src="Figures/Figure12.png" alt="Figure 11" width="30%"/>
-</div>
+<p align="center">
+  <img src="Figures/Figure12.png" alt="Figure 12" width="30%">
+</p>
 
 ```r
 data <- Tax_melt[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
