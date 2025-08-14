@@ -188,7 +188,7 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 ```
 # Figure 3: Euler plot - Robot vs Tripod
 <p align="center">
-  <img src="Figures/Figure3.png" alt="Figure 3" width="50%"/>
+  <img src="Figures/Figure3.png" alt="Figure 3" width="30%"/>
 </p>
 
 ```r
@@ -208,7 +208,7 @@ dev.off()
 ```
 # Figure 4: Barplot - Robot vs Tripod
 <p align="center">
-  <img src="Figures/Figure4.png" alt="Figure 4" width="50%"/>
+  <img src="Figures/Figure4.png" alt="Figure 4" width="60%"/>
 </p>
 
 ```r
@@ -269,7 +269,7 @@ dev.off()
 ```
 # Figure 7: PCR Replicates
 <p align="center">
-  <img src="Figures/Figure7.png" alt="Figure 7" width="50%"/>
+  <img src="Figures/Figure7.png" alt="Figure 7" width="70%"/>
 </p>
 
 ```r
@@ -347,7 +347,7 @@ dev.off()
 ```
 # Figure 9: Distance matrix - Tiahura 
 <p align="center">
-  <img src="Figures/Figure9.png" alt="Figure 9" width="50%"/>
+  <img src="Figures/Figure9.png" alt="Figure 9" width="60%"/>
 </p>
 
 ```r
@@ -385,7 +385,7 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
 ```
 # Figure 11: Barplot Activity - Along24h
 <p align="center">
-  <img src="Figures/Figure11.png" alt="Figure 11" width="50%"/>
+  <img src="Figures/Figure11.png" alt="Figure 11" width="60%"/>
 </p>
 
 ```r
