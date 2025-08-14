@@ -1,7 +1,7 @@
 
 The following command lines is used to generate a unique **OTU table** from `.fast5` files of eDNA metabarcoding data from **Nanopore sequencing technology**.
 
-[Pipeline schema.png]
+![Pipeline schema](Pipeline schema.png)
 
 The Bioinformatic pipeline folder contains: 
 - `ngs_rg_nanopore_run_quality_control-master.tar.gz`: script for checking basecalling and run quality
