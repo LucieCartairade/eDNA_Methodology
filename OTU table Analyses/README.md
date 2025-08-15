@@ -88,7 +88,6 @@ ggplot(df_plot, aes(x = sample, y = pc, fill = replicas)) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(x = "Sample", y = "% of OTUs Identified", fill = "Replicas") + 
   scale_fill_manual(values = c("3 replicates"= "grey95", "2 replicates" = "grey75", "1 replicate" = "grey50"))
-ggsave(path = Images_path, "Triplicates_Homogeneity.svg", width = 5, height = 4)
 ```
 ## Group OTUs by Species taxa
 ```r
@@ -167,24 +166,23 @@ data <- merge(as.data.frame(phyloseq::sample_data(physeq)), rich, by.x = "row.na
 data$Group <- ifelse(data$Size.fraction %in% c("0.2-0.8", "0.2-1.2", "0.2-3"), "Group1", "Group2")
 data[,c("Size.fraction","Group","Observed","Shannon")]
 
-# Graphique A : Observed
-p1 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Observed, fill = Group)) +
+# Plot A : Observed
+pA <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Observed, fill = Group)) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   labs(y = "Observed richness", x = "Size fraction", title = "Observed") + 
   scale_fill_manual(values = c("Group1" = "gray80", "Group2" = "gray60")) +
   scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none")
 
-# Graphique B : Shannon
-p2 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Shannon, fill = Group)) +
+# Plot B : Shannon
+pB <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Shannon, fill = Group)) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   labs(y = "Shannon index", x = "Size fraction", title = "Shannon") + 
   scale_fill_manual(values = c("Group1" = "gray80", "Group2" = "gray60")) +
   scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none")
 
-(p1 | p2) + plot_annotation(tag_levels = 'A')
-ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
+(pA | pB) + plot_annotation(tag_levels = 'A')
 ```
 # Figure 3: Euler plot - Robot vs Tripod
 <p align="center">
@@ -192,7 +190,7 @@ ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 6, height = 4)
 </p>
 
 ```r
-Tab_Euler <- Tax_melt_wV
+Tab_Euler <- Tax_melt
 Tab_Euler <- aggregate(as.numeric(Tab_Euler$relative_abundance), by= list(Method = Tab_Euler$Method, Species = Tab_Euler$Taxon), mean)
 Tab_Euler <- acast(Tab_Euler, value.var = "x", Tab_Euler$Species~Tab_Euler$Method, fill = 0)
 Tab_Euler <- as.data.frame(Tab_Euler) %>% 
@@ -213,46 +211,40 @@ dev.off()
 
 ```r
 top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
-
+# Little modifcation of the plot_nested_bar function from the fantaxtic library.
 plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Rep",
                       palette = c(unknown = "gray50"), merged_clr = "black", legend_title = "Species") +
   facet_grid(~Method, scales = "free_x", space = "free_x") + 
   xlab("20L Replica")
-
-ggsave(path = Images_path, filename = "Barplot_Phyloseq_Nested_top8.svg", width = 12, height = 8)
 ```
 # Figure 5: Alpha Diversity - Volume
 <p align="center">
-  <img src="Figures/Figure5.png" alt="Figure 5" width="50%"/>
+  <img src="Figures/Figure5.png" alt="Figure 5" width="40%"/>
 </p>
 
 ```r
 rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
 data <- merge(as.data.frame(phyloseq::sample_data(physeq_wout_Ctrl)), rich, by.x = "row.names", by.y = "row.names")
 data[,c("Filtration.volume","Observed","Shannon")]
-
 data <- cbind(data,Nb.reads = t(t(colSums(phyloseq::otu_table(physeq_wout_Ctrl)))))
 
-# Graphique A : Observed
-p1 <- ggplot(data, aes(x = factor(Filtration.volume), y = Observed, fill = factor(Filtration.volume))) +
+# Plot A : Observed
+pA <- ggplot(data, aes(x = factor(Filtration.volume), y = Observed, fill = factor(Filtration.volume))) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   #geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
   labs(y = "Observed richness", x = "Filtration volume (L)", title = "Observed") + 
   scale_fill_manual(values = c("gray80", "gray70", "gray60")) + theme(legend.position = "none")
 
-# Graphique B : Shannon
-p2 <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor(Filtration.volume))) +
+# Plot B : Shannon
+pB <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor(Filtration.volume))) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   #geom_jitter(width = 0.1, size = 2, alpha = 0.6) +
   labs(y = "Shannon index", x = "Filtration volume (L)", title = "Shannon") + 
   scale_fill_manual(values = c("gray80", "gray70", "gray60"))+ theme(legend.position = "none")
-p2
 
-# Combine les deux graphiques
-(p1 | p2 ) + plot_annotation(tag_levels = 'A')
-ggsave(path = Images_path, filename = "AlphaDiv.svg", width = 4, height = 4)
+(pA | pB ) + plot_annotation(tag_levels = 'A')
 ```
 # Figure 6: Accumulation curves - Sampling Replicates
 <p align="center">
@@ -274,8 +266,8 @@ dev.off()
 
 ```r
 Nb <- data.frame(Nb_OTUs = colSums(Tax_table != 0 ), 
-                Origin = stringr::str_split(colnames(Tax_table), "_", simplify= T)[,1],
-                Rep = as.numeric(stringr::str_split(colnames(Tax_table), "_", simplify= T)[,2]))
+                 Origin = stringr::str_split(colnames(Tax_table), "_", simplify= T)[,1],
+                 Rep = as.numeric(stringr::str_split(colnames(Tax_table), "_", simplify= T)[,2]))
 
 summary_data <- Nb %>%
   group_by(Rep) %>%
@@ -324,7 +316,6 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
   )
 
 (p1 | p2) + plot_annotation(tag_levels = 'A')
-ggsave(path = Images_path, filename = "PCR_replicates.svg", width = 8, height = 4)
 ```
 # Figure 8: Sequencing depth
 <p align="center">
