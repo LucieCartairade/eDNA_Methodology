@@ -30,17 +30,6 @@ guppy_basecaller --input_path /path/to/$Experiment_name/$Run_name/$Run_id/fast5_
 guppy_basecaller --input_path  /path/to/$Experiment_name/$Run_name/$Run_id/fast5/ --save_path $Experiement_name/$Run_name/basecalled/ -c /opt/ont/guppy/data/dna_r10.3_450bps_sup.cfg -x "cuda:0" --compress_fastq
 ```
 
-To check the basecalling and run qualities : 
-```bash
-python -m venv venv #initialize a virtual environment
-source venv/bin/activate #create the virtual environment
-pip install /path/to/ngs_rg_nanopore_run_quality_control-master.tar.gz #package installation
-ngs_rg_nanopore_run_quality_control --help
-
-ngs_rg_nanopore_run_quality_control --sequencing_summary /path/to/sequencing_summary_*.txt --output_directory /path/to/output/directory/
-
-deactivate
-```
 ## Demultiplexing with Porechop 
 ```bash 
 porechop -i //fastq_source --require_two_barcodes -b //fastq_results --threads 16 --verbosity 2 > output 2>&1
