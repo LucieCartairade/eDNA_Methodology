@@ -4,15 +4,14 @@ The following command lines is used to generate a unique **OTU table** from `.fa
 ![Pipeline schema](Pipeline-schema.png)
 
 The Bioinformatic pipeline folder contains: 
-- `ngs_rg_nanopore_run_quality_control-master.tar.gz`: script for checking basecalling and run quality
 - `decona`: decona script from https://github.com/Saskia-Oosterbroek/decona
-- `DB_MiFish_Actino.fasta`: **Zenodo link?** 
 - `barcode_list.txt`: file example
 - `header.txt` 
 - `script_concatenating_double_OTUs.py` : Concatenating the reference database id of each OTU that share the same biscore
 - `script_res_blast_summary_to_tax_without_filter.py`: Retrieving taxonomic lineage (Familly Genus, species) from one ore more tax IDs
 - `script_adding_seq_to_res_sum_tax.py`: Adding corresponding consensus sequence to each OTU
 - `script_counting_reads.py`: Counting the number of reads in each OTU cluster and create a matrix OTU table
+The 12S reference database is describe and available at 10.5281/zenodo.16969829
 
 The OTU table Analyses folder contains R scripts to built figure from *Optimizing a novel eDNA-based framework for Reef Fish Biodiversity monitoring using an Autonomous Filtration Systems and in situ Nanopore Sequencing*. **doi link**
 
