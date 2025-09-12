@@ -27,7 +27,6 @@ rownames(Res) <- Res$clusters.id
 ## Rarefaction
 ```r
 Tab_raw <- Res[,15:dim(Res)[2]]
-#Tab_raw[is.na(Tab_raw)] <- 0 
 
 #total number of species at each site (row of data)
 S <- vegan::specnumber(t(Tab_raw))
@@ -37,26 +36,8 @@ raremax <- min(rowSums(t(Tab_raw), na.rm = T))
 
 # rarefy, w/ raremax as input
 Srare <- vegan::rarefy(t(Tab_raw), raremax)
-Tab_raw
-Srare
-
-#Plot rarefaction results
-pdf(paste0(Images_path,"rarefaction.pdf"), width = 9, height = 6)
-#par(mfrow = c(1,2))
-plot(S, Srare, xlab = "Observed No. of Species", 
-     ylab = "Rarefied No. of Species",
-     main = "plot(rarefy(Tab, raremax))", 
-     xlim = c(0,max(S,Srare)), 
-     ylim = c(0,max(S,Srare)))
-abline(0, 1)
-vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F,
-                 main = "rarecurve() on subset of data")
-dev.off()
-
-c(S-Srare)[order(S-Srare, decreasing = T)]
 
 Tab_rar <- vegan::rrarefy(t(Tab_raw), raremax)
-
 Tab_rar <- as.data.frame(t(Tab_rar))
 Tab_rar$clusters.id <- row.names(Tab_rar)
 Res_rar <- dplyr::right_join(as.data.frame(Res)[,c(1:14)], Tab_rar, by = c("clusters.id" = "clusters.id"))
@@ -72,7 +53,6 @@ Res_melt_rar <- Res_melt_rar[-which(is.na(Res_melt_rar$Nb.reads)),]
 100 * sum(subset(Res_melt_rar,Res_melt_rar$Family=="unknown")$Nb.reads)/sum(Res_melt_rar$Nb.reads)
 
 # Copying Figure 2 from  https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0176343
-
 Tab <- reshape2::acast(Res_melt, value.var = "Nb.reads", clusters.id~Sample.ID, fill = 0, fun.aggregate = sum)
 Tab <- reshape2::acast(Res_melt_rar, value.var = "Nb.reads", clusters.id~Sample.ID, fill = 0, fun.aggregate = sum)
 df <- Replica_OTU(Tab, col = c(1, 4, 7, 10, 17, 20, 23, 26, 29, 32, 35, 38))
@@ -121,7 +101,7 @@ p <- ggplot(Tax_melt, aes(x=bit.score_mean, y=alignment.length_mean)) + geom_poi
 ggExtra::ggMarginal(p, type="density")
 
 # Assigning to unknown assignation with bit.score inferior to 250
-Tax_melt[which(Tax_melt$bit.score_mean < 250),"Taxon"] <- "unknown unknown"
+Tax_melt[which(Tax_melt$bit.score_mean < 250),"Taxon"] <- "unknown"
 Tax_melt[which(Tax_melt$bit.score_mean < 250),"Family"] <- "unknown"
 Tax_melt[which(Tax_melt$bit.score_mean < 250),"X.ID_mean"] <- NA
 
@@ -150,10 +130,8 @@ TAX <- phyloseq::tax_table(as.matrix(TAX))
 sample <- data.frame(metadatas, row.names = metadatas$Sample.ID)
 SAMPLE <- phyloseq::sample_data(sample)
 
+# Phyloseq object
 physeq <- phyloseq::phyloseq(OTUs, TAX, SAMPLE)
-
-physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
-
 ```
 # Figure 2 : Porosity - Alpha Diversity 
 <p align="center">
@@ -161,28 +139,46 @@ physeq <- phyloseq::subset_samples(physeq, Sample.Type != "Control")
 </p>
 
 ```r
-rich <- phyloseq::estimate_richness(physeq, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
+rich = phyloseq::estimate_richness(physeq_wout_Ctrl, measures = c("Observed", "Chao1", "Shannon", "InvSimpson"))
 data <- merge(as.data.frame(phyloseq::sample_data(physeq)), rich, by.x = "row.names", by.y = "row.names")
-data$Group <- ifelse(data$Size.fraction %in% c("0.2-0.8", "0.2-1.2", "0.2-3"), "Group1", "Group2")
+data$Group <- ifelse(data$Size.fraction %in% c("0.2-0.8", "0.2-1.2", "0.2-3"),"a", "b")
 data[,c("Size.fraction","Group","Observed","Shannon")]
 
-# Plot A : Observed
-pA <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Observed, fill = Group)) +
+df_labels <- data %>%
+  filter(Sample.Type != "Control") %>%
+  group_by(Size.fraction, Group) %>%
+  summarise(Observed = mean(Observed), .groups = "drop")
+
+# A : Observed
+p1 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Observed, fill = Group)) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   labs(y = "Observed richness", x = "Size fraction", title = "Observed") + 
-  scale_fill_manual(values = c("Group1" = "gray80", "Group2" = "gray60")) +
-  scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none")
+  scale_fill_manual(values = c("a" = "gray80", "b" = "gray60")) +
+  scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none") + 
+  geom_text(data = df_labels, aes(label = Group), nudge_x = 0.27, nudge_y = 1.8, size = 3)
+p1
 
-# Plot B : Shannon
-pB <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Shannon, fill = Group)) +
+data$Group <- ifelse(data$Size.fraction %in% c("0.2-0.8", "0.2-1.2", "0.2-3"),"c", "d")
+
+df_labels <- data %>%
+  filter(Sample.Type != "Control") %>%
+  group_by(Size.fraction, Group) %>%
+  summarise(Shannon = mean(Shannon), .groups = "drop")
+
+# B : Shannon
+p2 <- ggplot(subset(data, Sample.Type != "Control"), aes(x = Size.fraction, y = Shannon, fill = Group)) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
   labs(y = "Shannon index", x = "Size fraction", title = "Shannon") + 
-  scale_fill_manual(values = c("Group1" = "gray80", "Group2" = "gray60")) +
-  scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none")
+  scale_fill_manual(values = c("c" = "gray80", "d" = "gray60")) +
+  scale_x_discrete(guide = guide_axis(angle = 45)) + theme(legend.position = "none") + 
+  geom_text(data = df_labels, aes(label = Group), nudge_x = 0.27, nudge_y = 0.14, size = 3)
+p2
 
-(pA | pB) + plot_annotation(tag_levels = 'A')
+(p1 | p2) + plot_annotation(tag_levels = 'A')
+
+ggsave(path = Images_path, filename = "Figure2.pdf", width = 6, height = 4)
 ```
 # Figure 3: Euler plot - Robot vs Tripod
 <p align="center">
@@ -199,7 +195,7 @@ colnames(Tab_Euler) <- c("Robot", "Tripod", "Visual Census")
 
 Tab_Euler_final <- ifelse(Tab_Euler == 0,FALSE,TRUE)
 
-pdf(file = paste0(Images_path,"Euler_plot.pdf"), width = 5, height = 5)
+pdf(file = paste0(Images_path,"Figure3.pdf"), width = 5, height = 5)
 set.seed(19980821)
 plot(eulerr::euler(Tab_Euler_final, shape = "ellipse"), fills = c("#4A90E2", "#F5A623", "#50E3C2"), quantities = TRUE, alpha = 0.5)
 dev.off()
@@ -212,10 +208,59 @@ dev.off()
 ```r
 top_nested <- fantaxtic::nested_top_taxa(physeq, top_tax_level = "Family", nested_tax_level = "Species", n_top_taxa = 7, n_nested_taxa = 8, include_na_taxa = T)
 # Little modifcation of the plot_nested_bar function from the fantaxtic library.
-plot_nested_bar_Lucie(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Rep",
-                      palette = c(unknown = "gray50"), merged_clr = "black", legend_title = "Species") +
-  facet_grid(~Method, scales = "free_x", space = "free_x") + 
-  xlab("20L Replica")
+## Changing x = "Sample" to x = x_value (to be passed as an argument)
+## Removing the angle of the x-axis
+## Changing the light theme to bw
+plot_nested_bar_Lucie <- function (ps_obj, top_level, nested_level, top_merged_label = "Other", x_value,
+                                   nested_merged_label = "Other <tax>", palette = NULL, base_clr = "#008CF0", 
+                                   merged_clr = "grey90", include_rank = T, na_taxon_label = "<tax> (<rank>)", 
+                                   asv_as_id = F, duplicate_taxon_label = "<tax> <id>", relative_abundances = T, 
+                                   sample_order = NULL, ...) 
+{
+  library(dplyr)
+  ps_tmp <- ps_obj %>% fantaxtic::name_na_taxa(include_rank = include_rank, 
+                                               na_label = na_taxon_label)
+  ps_tmp <- ps_tmp %>% fantaxtic::label_duplicate_taxa(tax_level = nested_level, 
+                                                       asv_as_id = asv_as_id, duplicate_label = duplicate_taxon_label)
+  pal <- fantaxtic::taxon_colours(ps_tmp, tax_level = top_level, merged_label = top_merged_label, 
+                                  merged_clr = merged_clr, palette = palette, base_clr = base_clr)
+  psdf <- phyloseq::psmelt(ps_tmp)
+  psdf <- fantaxtic::move_label(psdf = psdf, col_name = top_level, label = top_merged_label, 
+                                pos = 0)
+  psdf <- fantaxtic::move_nested_labels(psdf, top_level = top_level, 
+                                        nested_level = nested_level, top_merged_label = top_merged_label, 
+                                        nested_label = gsub("<tax>", "", nested_merged_label), 
+                                        pos = Inf)
+  if (!is.null(sample_order)) {
+    if (all(sample_order %in% unique(psdf$Sample))) {
+      psdf <- psdf %>% mutate(Sample = factor(Sample, 
+                                              levels = sample_order))
+    }
+    else {
+      stop("Error: not all(sample_order %in% sample_names(ps_obj)).")
+    }
+  }
+  
+  p <- ggnested::ggnested(psdf, aes_string(main_group = top_level, sub_group = nested_level, 
+                                           x = x_value, y = "Abundance"), ..., main_palette = pal) + 
+    scale_y_continuous(expand = c(0, 0)) + ggnested::theme_nested(theme_bw) + guides(fill=guide_legend(ncol=2)) #+ 
+  #theme(axis.text.x = element_text(hjust = 1, vjust = 0.5, angle = 90))
+
+  if (relative_abundances) {
+    p <- p + geom_col(position = position_fill())
+  }
+  else {
+    p <- p + geom_col()
+  }
+  return(p)
+}
+
+plot_nested_bar_Lucie_RvsT(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Method",
+                      palette = c(unknown = "gray50", Mugilidae = "gray80"),
+                      #na_taxon_label = "unknown",
+                      merged_clr = "black",
+                      legend_title = "Species")
+ggsave(path = Images_path, filename = "Figure4.pdf", width = 7.5, height = 5.5)
 ```
 # Figure 5: Alpha Diversity - Volume
 <p align="center">
@@ -228,7 +273,7 @@ data <- merge(as.data.frame(phyloseq::sample_data(physeq_wout_Ctrl)), rich, by.x
 data[,c("Filtration.volume","Observed","Shannon")]
 data <- cbind(data,Nb.reads = t(t(colSums(phyloseq::otu_table(physeq_wout_Ctrl)))))
 
-# Plot A : Observed
+# A : Observed
 pA <- ggplot(data, aes(x = factor(Filtration.volume), y = Observed, fill = factor(Filtration.volume))) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
@@ -236,7 +281,7 @@ pA <- ggplot(data, aes(x = factor(Filtration.volume), y = Observed, fill = facto
   labs(y = "Observed richness", x = "Filtration volume (L)", title = "Observed") + 
   scale_fill_manual(values = c("gray80", "gray70", "gray60")) + theme(legend.position = "none")
 
-# Plot B : Shannon
+# B : Shannon
 pB <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor(Filtration.volume))) +
   stat_summary(fun = mean, geom = "bar", color = "black", width = 0.7) +
   stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
@@ -245,6 +290,7 @@ pB <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor
   scale_fill_manual(values = c("gray80", "gray70", "gray60"))+ theme(legend.position = "none")
 
 (pA | pB ) + plot_annotation(tag_levels = 'A')
+ggsave(path = Images_path, filename = "Figure5.pdf", width = 4, height = 4)
 ```
 # Figure 6: Accumulation curves - Sampling Replicates
 <p align="center">
@@ -253,11 +299,46 @@ pB <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor
 
 ```r
 sp <- vegan::specaccum(t(Tax_table), method = "collector")
+plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue", main = "Species Accumulation curve", xlab = "Replicas", ylab = "Number of species")
 
-pdf(paste0(Images_path,"spaceaccum.pdf"),width = 5, height = 5)
-plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue", 
-    main = "Species Accumulation curve", xlab = "Replicas", ylab = "Number of species")
-dev.off()
+# Regression 
+## Data from vegan::specaccum function.
+df <- data.frame(
+  Sites     = c(1, 2, 3, 4, 5, 6, 7, 8),
+  Richness  = c(39.12500, 52.35714, 60.37500, 66.18571, 70.78571, 74.64286, 78.00000, 81.00000),
+  SD        = c(4.59449, 3.75907, 3.34113, 3.05885, 2.81151, 2.21539, 1.32288, 0)
+)
+
+## Logarithmic model
+log_model <- lm(Richness ~ log(Sites), data = df)
+
+## Model parameters
+intercept <- coef(log_model)["(Intercept)"]
+slope     <- coef(log_model)["log(Sites)"]
+
+## Candidate sites to test
+sites_test <- 1:1000
+
+## Expected increment for adding one more site
+delta <- slope * log((sites_test + 1) / sites_test)
+
+## First site where increment < 1
+sites_plateau <- sites_test[delta < 1][1]
+
+## Extended prediction curve
+sites_new <- seq(0, max(sites_plateau, max(df$Sites)) + 5, by = 0.1)
+df_pred <- data.frame(Sites = sites_new)
+df_pred$Predicted <- predict(log_model, newdata = df_pred)
+
+ggplot(df, aes(x = Sites, y = Richness)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = Richness - SD, ymax = Richness + SD), width = 0.3) +
+  geom_line(data = df_pred, aes(y = Predicted), color = "blue") +
+  geom_vline(xintercept = sites_plateau, linetype = "dashed", color = "purple") +
+  labs(x = "Replicates") + 
+  ylab("Species richness")
+ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
+
 ```
 # Figure 7: PCR Replicates
 <p align="center">
@@ -265,28 +346,48 @@ dev.off()
 </p>
 
 ```r
-Nb <- data.frame(Nb_OTUs = colSums(Tax_table != 0 ), 
-                 Origin = stringr::str_split(colnames(Tax_table), "_", simplify= T)[,1],
-                 Rep = as.numeric(stringr::str_split(colnames(Tax_table), "_", simplify= T)[,2]))
-
-summary_data <- Nb %>%
+# Summarize OTU richness by PCR replicates
+summary_richness <- Nb %>%
   group_by(Rep) %>%
   summarise(
-    mean_OTUs = mean(Nb_OTUs),
-    sd_OTUs = sd(Nb_OTUs)
+    mean_richness = mean(Nb_OTUs),
+    sd_richness   = sd(Nb_OTUs)
   )
 
-p1 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
+# Logistic regression model
+logistic_model <- nls(mean_richness ~ a / (1 + exp(-(Rep - b)/c)),
+                      data = summary_richness,
+                      start = list(a = max(summary_richness$mean_richness),
+                                   b = median(summary_richness$Rep), c = 1))
+
+# Plateau (99%)
+a <- coef(logistic_model)["a"]
+b <- coef(logistic_model)["b"]
+c <- coef(logistic_model)["c"]
+plateau <- a
+p <- 0.99
+target_value <- p * plateau
+replicates_99 <- b - c * log(a / target_value - 1)
+
+# Extended predictions for logistic curve
+replicates_new <- seq(1, max(ceiling(replicates_99), max(summary_richness$Rep)) + 2, by = 0.1)
+df_pred <- data.frame(Rep = replicates_new)
+df_pred$Pred_logistic <- predict(logistic_model, newdata = df_pred)
+
+p_richness <- ggplot(summary_richness, aes(x = Rep, y = mean_richness)) +
   geom_point(size = 3) +
-  geom_line() +
-  geom_errorbar(aes(ymin = mean_OTUs - sd_OTUs, ymax = mean_OTUs + sd_OTUs), width = 0.3) +
+  geom_errorbar(aes(ymin = mean_richness - sd_richness,
+                    ymax = mean_richness + sd_richness), width = 0.2) +
+  geom_line(data = df_pred, aes(y = Pred_logistic), color = "blue", size = 1) +
+  geom_vline(xintercept = replicates_99, linetype = "dashed", color = "purple") +
   scale_x_continuous(breaks = c(1, 3, 5, 10)) +
   labs(
     x = "Number of PCR replicates",
-    y = "Mean number of OTUs (± SD)",
-    title = "Observed"
+    y = "Richness",
+    title = "Observed richness"
   )
 
+# Shannon index 
 shannon_df <- Tax_melt %>%
   group_by(Sample.ID) %>%
   mutate(p = Nb.reads_sum / sum(Nb.reads_sum)) %>%
@@ -297,25 +398,24 @@ shannon_df <- Tax_melt %>%
     Rep = as.numeric(Rep)
   )
 
-summary_data <- shannon_df %>%
-  group_by(Rep) %>%
-  summarise(
-    mean_OTUs = mean(Shannon),
-    sd_OTUs = sd(Shannon)
-  )
-
-p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
+p_shannon <- ggplot(shannon_df, aes(x = Rep, y = Shannon, color = factor(Origin))) +
   geom_point(size = 3) +
   geom_line() +
-  geom_errorbar(aes(ymin = mean_OTUs - sd_OTUs, ymax = mean_OTUs + sd_OTUs), width = 0.3) +
   scale_x_continuous(breaks = c(1, 3, 5, 10)) +
   labs(
     x = "Number of PCR replicates",
-    y = "Mean Shannon index (± SD)",
-    title = "Shannon index"
+    y = "Shannon index",
+    color = "Sample",
+    title = "Effect of PCR replicates on Shannon index"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 14),
+    plot.title = element_text(face = "bold", hjust = 0.5)
   )
 
-(p1 | p2) + plot_annotation(tag_levels = 'A')
+(p_richness | p_shannon) + plot_annotation(tag_levels = 'A')
+ggsave(path = Images_path, filename = "Figure7.pdf", width = 8, height = 4)
 ```
 # Figure 8: Sequencing depth
 <p align="center">
@@ -323,17 +423,37 @@ p2 <- ggplot(summary_data, aes(x = Rep, y = mean_OTUs)) +
 </p>
 
 ```r
-pdf(paste0(Images_path,"rarefaction.pdf"), width = 9, height = 6)
-#par(mfrow = c(1,2))
+#Plot rarefaction results
+pdf(paste0(Images_path,"Figure8.pdf"), width = 9, height = 6)
 plot(S, Srare, xlab = "Observed No. of Species", 
      ylab = "Rarefied No. of Species",
      main = "plot(rarefy(Tab, raremax))", 
      xlim = c(0,max(S,Srare)), 
      ylim = c(0,max(S,Srare)))
 abline(0, 1)
-vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F, 
-                 ylab = "Number of OTUs",
-                 xlab = "Sample Size")
+
+vegan::rarecurve(t(Tab_raw), step = 20, sample = raremax, col = "blue", cex = 0.6, label = F,
+                 main = "rarefaction curve on subset of data",
+                 ylab = "Species richness")
+
+# x-axis in log scale 
+rc <- vegan::rarecurve(t(Tab_raw), step = 20, 
+                 col = "blue", cex = 0.6, 
+                 label = T,
+                 abline(v = raremax), 
+                 plot = FALSE)
+
+plot(attr(rc[[1]], "Subsample"), rc[[1]],
+     type = "n",
+     log = "x",
+     xlab = "Sample size (log)",
+     ylab = "Species richness",
+     main = "Rarefaction curve")
+for (i in seq_along(rc)) {
+  lines(attr(rc[[i]], "Subsample"), rc[[i]], col = "blue")
+}
+abline(v = raremax)
+
 dev.off()
 ```
 # Figure 9: Distance matrix - Tiahura 
@@ -342,11 +462,88 @@ dev.off()
 </p>
 
 ```r
-dist.jc. <- betapart::beta.pair(t(ifelse(Tax_table != 0, 1, 0)), index.family="jaccard")
-dist.bc. <- vegan::vegdist(t(Tax_table), method = "bray")
+#Turn the Tax table with Visual Census data to a 0/1 matrix
+Tax_table_wVC_01 <- ifelse(Tax_table_wVC != 0 , 1, 0)
 
-pheatmap::pheatmap(as.matrix(dist.jc$beta.jac), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "Jaccard")
-pheatmap::pheatmap(as.matrix(dist.bc), cluster_rows = F, cluster_cols = F, cellwidth = 10, cellheight = 10, legend = TRUE, main = "BrayCurtis")
+# Assess jaccard and bray curtis distance for eDNA data
+dist.jc.eDNA <- betapart::beta.pair(t(Tax_table_01[,1:18]), index.family="jaccard")
+dist.bc.eDNA <- vegan::vegdist(t(Tax_table_wVC[,1:18]), method = "bray")
+
+# for Visual Census data
+dist.jc.VC <- betapart::beta.pair(t(Tax_table_wVC_01[,19:36]), index.family="jaccard")
+dist.bc.VC <- vegan::vegdist(t(Tax_table_wVC[,19:36]), method = "bray")
+
+# for both data
+dist.jc.both <- betapart::beta.pair(t(Tax_table_wVC_01), index.family="jaccard")
+dist.bc.both <- vegan::vegdist(t(Tax_table_wVC), method = "bray")
+
+# Function based on pheatmap library 
+my_pheatmap <- function(dist, main_text, legend_bool)
+{
+  mat <- as.matrix(dist)
+  
+  # Extract habitat and month
+  habitat <- stringr::str_extract(colnames(mat), "^\\w+\\s+\\w+")
+  month <- stringr::str_extract(colnames(mat), "\\d{2}(?= \\d$)")
+  month_text <- ifelse(month == "03", "March", "September")
+  rep <- sub(".* (\\d)$", "\\1", colnames(mat))
+  
+  # New labels displayed
+  display_labels <- paste("replica", rep)
+  
+  # Define splits to group rows/columns
+  annotation_col <- data.frame(
+    Month   = month_text,
+    Habitat = habitat
+  )
+  rownames(annotation_col) <- colnames(mat)
+  
+  annotation_row <- annotation_col
+  
+  habitat_levels <- levels(factor(annotation_row$Habitat))
+  month_levels <- levels(factor(annotation_row$Month))
+  
+  annotation_colors <- list(
+    Habitat = setNames(viridisLite::magma(length(habitat_levels), begin = 0.3, end = 0.9), habitat_levels),
+    Month   = setNames(viridisLite::viridis(length(month_levels), begin = 0.3, end = 0.8), month_levels)
+  )
+  
+  # pheatmap without color for annotations, only to group
+  plot_pheatmap <- pheatmap::pheatmap(mat,
+                                      cluster_rows = FALSE,
+                                      cluster_cols = FALSE,
+                                      labels_row = display_labels,
+                                      labels_col = display_labels,
+                                      annotation_row = annotation_row,
+                                      annotation_col = annotation_col,
+                                      annotation_colors = annotation_colors,
+                                      show_rownames = TRUE,
+                                      show_colnames = TRUE,
+                                      border_color = "white", 
+                                      main = main_text, 
+                                      legend = legend_bool, 
+                                      annotation_legend = legend_bool, 
+                                      cellwidth = 15,
+                                      cellheight = 15
+  )
+  return(plot_pheatmap) 
+}
+
+eDNA_Jac <- my_pheatmap(dist = dist.jc.eDNA$beta.jac, main_text = "eDNA", legend_bool = T)
+VC_Jac <- my_pheatmap(dist = dist.jc.VC$beta.jac, main_text = "Visual Census", legend_bool = F)
+
+library(grid)
+library(gridExtra)
+
+# Extract gtables
+g1 <- eDNA_Jac$gtable
+g2 <- VC_Jac$gtable
+
+# Export final figure
+pdf(paste0(Images_path,"Figure9.pdf"), width = 15, height = 6) 
+grid.arrange(g1, g2, ncol = 2)
+dev.off()
+
 ```
 # Figure 10: PCoA - Tiahura
 <p align="center">
@@ -373,6 +570,7 @@ pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) 
   facet_wrap(~paste("Month",Month)) + 
   stat_ellipse(aes_string(fill = "Sample.Type"),geom = "polygon", type = "norm", level = 0.9, alpha = 0.2) + 
   scale_color_brewer(palette = "Paired")
+ggsave(path = Images_path, file = "Figure10.pdf", plot = my_plot, height = 6, width = 7 )
 ```
 # Figure 11: Barplot Activity - Along24h
 <p align="center">
@@ -391,6 +589,8 @@ p$data[,"Activity"] <- factor(p$data[,"Activity"], levels = c("nocturnal", "both
 p + xlab("20L Replicates") +
   theme(text=element_text(size = 20)) + scale_x_discrete(guide = guide_axis(angle = 0)) + geom_col(color = "black", size = 0.05) + 
   ggh4x::facet_nested(~ Sampling.Time + paste("Day",Sampling.Day), scales = "free", space = "free_x")
+
+ggsave(path = Images_path, "Figure11.pdf", width = 15, height = 9)
 ```
 # Figure 12: Nocturnal activity ratio
 
@@ -399,9 +599,13 @@ p + xlab("20L Replicates") +
 </p>
 
 ```r
-data <- Tax_melt[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
+data <- Tax_melt_wA[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
 
-ratio <- data %>%
+# Shapiro-Wilk normality distribtion test
+shapiro.test(data$Nb.reads_sum)
+
+# Number of reads ratio
+ratio_quant <- data %>%
   group_by(Sample.ID, Sampling.Time) %>%
   summarise(
     reads_nocturnal = sum(ifelse(Activity == "nocturnal", Nb.reads_sum, 0), na.rm = TRUE),
@@ -411,16 +615,80 @@ ratio <- data %>%
     ratio_nocturnal_both = reads_nocturnal_both / reads_total
   )
 
-shapiro.test(ratio$ratio_nocturnal)
-kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio)
-FSA::dunnTest(ratio_nocturnal ~ Sampling.Time, data = ratio, method = "bonferroni")
+# Presence/absence ratio
+ratio_qual <- data %>%
+  group_by(Sample.ID, Sampling.Time) %>%
+  summarise(
+    species_nocturnal = n_distinct(Taxon[Activity == "nocturnal"]),
+    species_total = n_distinct(Taxon),
+    ratio_nocturnal = species_nocturnal / species_total
+  )
 
-p <- ggplot(ratio, aes(x = Sampling.Time, y = ratio_nocturnal)) +
+sum(subset(data, Sample.ID == "1.00.1" & Activity == "nocturnal")$Nb.reads_sum)
+sum(subset(data, Sample.ID == "1.00.1")$Nb.reads_sum)
+
+shapiro.test(ratio_quant$ratio_nocturnal)
+shapiro.test(ratio_qual$ratio_nocturnal)
+
+kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio_quant)
+kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio_qualt)
+
+# Test de Dunn post-hoc
+dunn_quant <- FSA::dunnTest(ratio_nocturnal ~ Sampling.Time, data = ratio_quant, method = "bonferroni")
+dunn_qual <- FSA::dunnTest(ratio_nocturnal ~ Sampling.Time, data = ratio_qual, method = "bonferroni")
+
+# Function to extract Dunn test results for ggpubr
+prepare_dunn_df <- function(dunn_result, data, y_col) {
+  dunn_result$res %>%
+    rename(comparison = Comparison,
+           p.adj = P.adj) %>%
+    mutate(
+      # Split comparison into two groups
+      group1 = sub(" - .*", "", comparison),
+      group2 = sub(".*- ", "", comparison),
+      # Define significance levels
+      p.adj.signif = case_when(
+        p.adj <= 0.001 ~ "***",
+        p.adj <= 0.01  ~ "**",
+        p.adj <= 0.05  ~ "*",
+        TRUE           ~ "ns"
+      )
+    ) %>%
+    # Keep only significant comparisons
+    filter(p.adj.signif != "ns") %>%
+    # Define y-position for annotations
+    mutate(y.position = max(data[[y_col]]) * (1.05 + row_number() * 0.05))
+}
+
+dunn_quant_df <- prepare_dunn_df(dunn_quant, ratio_quant, "ratio_nocturnal")
+dunn_qual_df  <- prepare_dunn_df(dunn_qual,  ratio_qual,  "ratio_nocturnal")
+
+# Create the boxplot
+p <- ggplot(ratio_quant, aes(x = Sampling.Time, y = ratio_nocturnal)) +
   geom_boxplot(width = 0.6) +
   stat_summary(fun = mean, geom = "point", shape = 18, color = "red") +
-  labs(y = "Nocturnal species reads ratio", x = "Sampling time") +
+  labs(y = "Nocturnal species reads ratio",x = "Sampling time") +
   theme(legend.position = "none")
 
-stat <- data.frame( group1 = c("00:30", "00:30"), group2 = c("12:30", "18:30"), y.position = c(0.6, 0.65),  p.adj = c(0.00065, 0.00019), p.adj.signif = c("***", "***"))
-p + ggpubr::stat_pvalue_manual(data = stat, label = "p.adj.signif", tip.length = 0.01)
+p + ggpubr::stat_pvalue_manual(
+  data = dunn_quant_df,
+  label = "p.adj.signif",
+  tip.length = 0.01
+)
+
+ggsave(path = Images_path_final, file = "Figure12.pdf", width = 3, height = 4)
+
+# Create the boxplot
+p <- ggplot(ratio_qual, aes(x = Sampling.Time, y = ratio_nocturnal)) +
+  geom_boxplot(width = 0.6) +
+  stat_summary(fun = mean, geom = "point", shape = 18, color = "red") +
+  labs(y = "Nocturnal species reads ratio",x = "Sampling time") +
+  theme(legend.position = "none")
+
+p + ggpubr::stat_pvalue_manual(
+  data = dunn_qual_df,
+  label = "p.adj.signif",
+  tip.length = 0.01
+)
+ggsave(path = Images_path_final, file = "SupFig4.pdf", width = 3, height = 4)
 ```
