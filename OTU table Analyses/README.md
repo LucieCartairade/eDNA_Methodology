@@ -256,7 +256,7 @@ plot_nested_bar_Lucie <- function (ps_obj, top_level, nested_level, top_merged_l
 }
 
 plot_nested_bar_Lucie_RvsT(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Method",
-                      palette = c(unknown = "gray50", Mugilidae = "gray80"),
+                      palette = c(unknown = "gray50"),
                       #na_taxon_label = "unknown",
                       merged_clr = "black",
                       legend_title = "Species")
@@ -292,11 +292,12 @@ pB <- ggplot(data, aes(x = factor(Filtration.volume), y = Shannon, fill = factor
 (pA | pB ) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "Figure5.pdf", width = 4, height = 4)
 ```
-# Figure 6: Accumulation curves - Sampling Replicates
+# Figure 6: Accumulation curves 
 <p align="center">
   <img src="Figures/Figure6.png" alt="Figure 6" width="50%"/>
 </p>
 
+## Sampling replicates
 ```r
 sp <- vegan::specaccum(t(Tax_table), method = "collector")
 plot(sp, ci.type="poly", col="blue", lwd=2, ci.lty=0, ci.col="lightblue", main = "Species Accumulation curve", xlab = "Replicas", ylab = "Number of species")
@@ -330,17 +331,15 @@ sites_new <- seq(0, max(sites_plateau, max(df$Sites)) + 5, by = 0.1)
 df_pred <- data.frame(Sites = sites_new)
 df_pred$Predicted <- predict(log_model, newdata = df_pred)
 
-ggplot(df, aes(x = Sites, y = Richness)) +
+plot_Sampling-rep <- ggplot(df, aes(x = Sites, y = Richness)) +
   geom_point() +
   geom_errorbar(aes(ymin = Richness - SD, ymax = Richness + SD), width = 0.3) +
   geom_line(data = df_pred, aes(y = Predicted), color = "blue") +
   geom_vline(xintercept = sites_plateau, linetype = "dashed", color = "purple") +
   labs(x = "Replicates") + 
   ylab("Species richness")
-ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
-
 ```
-# Figure 7: PCR Replicates
+## PCR replicates
 <p align="center">
   <img src="Figures/Figure7.png" alt="Figure 7" width="70%"/>
 </p>
@@ -417,14 +416,8 @@ p_shannon <- ggplot(shannon_df, aes(x = Rep, y = Shannon, color = factor(Origin)
 (p_richness | p_shannon) + plot_annotation(tag_levels = 'A')
 ggsave(path = Images_path, filename = "Figure7.pdf", width = 8, height = 4)
 ```
-# Figure 8: Sequencing depth
-<p align="center">
-  <img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
-</p>
-
+## Sequencing depth
 ```r
-#Plot rarefaction results
-pdf(paste0(Images_path,"Figure8.pdf"), width = 9, height = 6)
 plot(S, Srare, xlab = "Observed No. of Species", 
      ylab = "Rarefied No. of Species",
      main = "plot(rarefy(Tab, raremax))", 
@@ -443,7 +436,7 @@ rc <- vegan::rarecurve(t(Tab_raw), step = 20,
                  abline(v = raremax), 
                  plot = FALSE)
 
-plot(attr(rc[[1]], "Subsample"), rc[[1]],
+plot_Rar <- plot(attr(rc[[1]], "Subsample"), rc[[1]],
      type = "n",
      log = "x",
      xlab = "Sample size (log)",
@@ -452,9 +445,11 @@ plot(attr(rc[[1]], "Subsample"), rc[[1]],
 for (i in seq_along(rc)) {
   lines(attr(rc[[i]], "Subsample"), rc[[i]], col = "blue")
 }
-abline(v = raremax)
 
-dev.off()
+
+(plot_Sample_rep | plot_PCR_rep) / plot_Rar + plot_annotation 
+ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
+
 ```
 # Figure 9: Distance matrix - Tiahura 
 <p align="center">
@@ -544,10 +539,13 @@ pdf(paste0(Images_path,"Figure9.pdf"), width = 15, height = 6)
 grid.arrange(g1, g2, ncol = 2)
 dev.off()
 
+
+ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
+
 ```
-# Figure 10: PCoA - Tiahura
+# Figure 8: PCoA - Tiahura
 <p align="center">
-  <img src="Figures/Figure10.png" alt="Figure 10" width="50%"/>
+  <img src="Figures/Figure8.png" alt="Figure 10" width="50%"/>
 </p>
 
 ```r
@@ -564,41 +562,59 @@ labs <- c(glue::glue("PCo 1 ({percent_explained[1]}%)"), glue::glue("PCo 2 ({per
 #Merging sample_data
 pcoa_data <- merge(as.data.frame(position), as.data.frame(Tax_melt_wVC), by.x = 0, by.y = "Sample.ID")
 
-pcoa_data %>% ggplot(aes_string(x = "Dim1", y = "Dim2", shape = "Sample.Type")) + 
-  geom_point(aes_string(color = "Habitat"),size = 3)  + 
+pcoa_data <- pcoa_data %>%
+  mutate(Month_comb = factor(Month)) 
+
+plot_pcoa <- ggplot(pcoa_data, aes(x = Dim1, y = Dim2)) +
+  stat_ellipse(aes(color = Sample.Type, linetype = Habitat),
+               type = "norm", level = 0.97, size = 0.75) +
+  scale_color_viridis_d(option = "magma", begin = 0.45, end = 0.75) +
+  ggnewscale::new_scale_color() +
+  geom_point(aes(color = Month, shape = Month), size = 2) +
+  scale_color_viridis_d(option = "viridis", begin = 0.4, end = 0.8, name = "Month") +
+  scale_shape_manual(values = c(16, 17), name = "Month") +
+  scale_linetype_manual(values = c(1,2,3)) +
+  guides(
+    color = guide_legend(
+      override.aes = list(shape = c(16, 17))
+    ),
+    shape = "none"
+  ) +
   labs(x = labs[1], y = labs[2]) +
-  facet_wrap(~paste("Month",Month)) + 
-  stat_ellipse(aes_string(fill = "Sample.Type"),geom = "polygon", type = "norm", level = 0.9, alpha = 0.2) + 
-  scale_color_brewer(palette = "Paired")
+  coord_equal()
+
+plot_pcoa
+
 ggsave(path = Images_path, file = "Figure10.pdf", plot = my_plot, height = 6, width = 7 )
 ```
-# Figure 11: Barplot Activity - Along24h
+# Figure 9: Fish Activity ratio
+
 <p align="center">
-  <img src="Figures/Figure11.png" alt="Figure 11" width="60%"/>
+  <img src="Figures/Figure9.png" alt="Figure 12" width="30%">
 </p>
 
 ```r
-palette["nocturnal"] <-"#5a9dad"
-palette["both"] <- "#84cfb0"
-palette["diurnal"] <- "#b7d980"
+paletteA <- c(
+  nocturnal = "#5a9dad",
+  both      = "#84cfb0",
+  diurnal   = "#b7d980"
+)
 
-p <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
+plot_Activity <- phyloseq::plot_bar(physeq, fill = "Activity", x = "Replica") +
   scale_color_manual(na.value = "grey50") + 
-  scale_fill_manual(values= palette )
-p$data[,"Activity"] <- factor(p$data[,"Activity"], levels = c("nocturnal", "both", "diurnal"))
-p + xlab("20L Replicates") +
-  theme(text=element_text(size = 20)) + scale_x_discrete(guide = guide_axis(angle = 0)) + geom_col(color = "black", size = 0.05) + 
-  ggh4x::facet_nested(~ Sampling.Time + paste("Day",Sampling.Day), scales = "free", space = "free_x")
+  scale_fill_manual(values= paletteA )
 
-ggsave(path = Images_path, "Figure11.pdf", width = 15, height = 9)
-```
-# Figure 12: Nocturnal activity ratio
+plot_Activity$data[,"Activity"] <- factor(plot_Activity$data[,"Activity"], levels = c("nocturnal", "both", "diurnal"))
 
-<p align="center">
-  <img src="Figures/Figure12.png" alt="Figure 12" width="30%">
-</p>
+plot_Activity <-  plot_Activity + xlab("20L Replicates") +
+  scale_x_discrete(guide = guide_axis(angle = 0)) + geom_col(color = "black", size = 0.05) + 
+  ggh4x::facet_nested(~ Sampling.Time + paste("Day",Sampling.Day), scales = "free", space = "free_x") + 
+  theme(panel.grid = element_blank(), 
+        strip.background = element_rect(fill = "white", colour = "black"), 
+        text=element_text(size = 20))  + 
+  geom_col(color = "black", size = 0)
+plot_Activity
 
-```r
 data <- Tax_melt_wA[,c("Sample.ID","Replica","Family","Taxon","Sampling.Time","Sampling.Day","Nb.reads_sum","Activity")]
 
 # Shapiro-Wilk normality distribtion test
@@ -631,9 +647,9 @@ shapiro.test(ratio_quant$ratio_nocturnal)
 shapiro.test(ratio_qual$ratio_nocturnal)
 
 kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio_quant)
-kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio_qualt)
+kruskal.test(ratio_nocturnal ~ Sampling.Time, data = ratio_qual)
 
-# Test de Dunn post-hoc
+# Post-hoc Dunn test
 dunn_quant <- FSA::dunnTest(ratio_nocturnal ~ Sampling.Time, data = ratio_quant, method = "bonferroni")
 dunn_qual <- FSA::dunnTest(ratio_nocturnal ~ Sampling.Time, data = ratio_qual, method = "bonferroni")
 
@@ -663,32 +679,38 @@ prepare_dunn_df <- function(dunn_result, data, y_col) {
 dunn_quant_df <- prepare_dunn_df(dunn_quant, ratio_quant, "ratio_nocturnal")
 dunn_qual_df  <- prepare_dunn_df(dunn_qual,  ratio_qual,  "ratio_nocturnal")
 
-# Create the boxplot
-p <- ggplot(ratio_quant, aes(x = Sampling.Time, y = ratio_nocturnal)) +
+plot_ratio_quant <- ggplot(ratio_quant, aes(x = Sampling.Time, y = ratio_nocturnal)) +
   geom_boxplot(width = 0.6) +
-  stat_summary(fun = mean, geom = "point", shape = 18, color = "red") +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "red") +
   labs(y = "Nocturnal species reads ratio",x = "Sampling time") +
-  theme(legend.position = "none")
+  theme(legend.position = "none", 
+        panel.grid = element_blank(), 
+        text=element_text(size = 20))
 
-p + ggpubr::stat_pvalue_manual(
+plot_ratio_quant <- plot_ratio_quant + ggpubr::stat_pvalue_manual(
   data = dunn_quant_df,
   label = "p.adj.signif",
   tip.length = 0.01
 )
 
-ggsave(path = Images_path_final, file = "Figure12.pdf", width = 3, height = 4)
+plot_ratio_quant
 
-# Create the boxplot
-p <- ggplot(ratio_qual, aes(x = Sampling.Time, y = ratio_nocturnal)) +
+plot_ratio_qual <- ggplot(ratio_qual, aes(x = Sampling.Time, y = ratio_nocturnal)) +
   geom_boxplot(width = 0.6) +
-  stat_summary(fun = mean, geom = "point", shape = 18, color = "red") +
-  labs(y = "Nocturnal species reads ratio",x = "Sampling time") +
-  theme(legend.position = "none")
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "red") +
+  labs(y = "Nocturnal species ratio",x = "Sampling time") +
+  theme(legend.position = "none", 
+        panel.grid = element_blank(), 
+        text=element_text(size = 20))
 
-p + ggpubr::stat_pvalue_manual(
+plot_ratio_qual <- plot_ratio_qual + ggpubr::stat_pvalue_manual(
   data = dunn_qual_df,
   label = "p.adj.signif",
   tip.length = 0.01
 )
-ggsave(path = Images_path_final, file = "SupFig4.pdf", width = 3, height = 4)
+
+plot_ratio_qual
+
+plot_Activity / (plot_ratio_quant | plot_ratio_qual) + plot_annotation(tag_levels = 'A')
+ggsave(path = Images_path_final, "Figure9.pdf", width = 15, height = 15)
 ```

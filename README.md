@@ -11,9 +11,9 @@ The Bioinformatic pipeline folder contains:
 - `script_res_blast_summary_to_tax_without_filter.py`: Retrieving taxonomic lineage (Familly Genus, species) from one ore more tax IDs
 - `script_adding_seq_to_res_sum_tax.py`: Adding corresponding consensus sequence to each OTU
 - `script_counting_reads.py`: Counting the number of reads in each OTU cluster and create a matrix OTU table
-The 12S reference database is describe and available at 10.5281/zenodo.16969829
+The 12S reference database is describe and available at [10.5281/zenodo.16969829](https://zenodo.org/records/16969829)
 
-The OTU table Analyses folder contains R scripts to built figure from *Optimizing a novel eDNA-based framework for Reef Fish Biodiversity monitoring using an Autonomous Filtration Systems and in situ Nanopore Sequencing*. **doi link**
+The OTU table Analyses folder contains R scripts to built figure from *Optimizing a novel eDNA-based framework for Reef Fish Biodiversity monitoring using an Autonomous Filtration Systems and in situ Nanopore Sequencing*.
 
 # Bioinformatics pipeline
 ## Basecalling with guppy 
