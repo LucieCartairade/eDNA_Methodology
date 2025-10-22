@@ -257,7 +257,6 @@ plot_nested_bar_Lucie <- function (ps_obj, top_level, nested_level, top_merged_l
 
 plot_nested_bar_Lucie_RvsT(ps_obj = top_nested$ps_obj, top_level = "Family", nested_level = "Species", x_value= "Method",
                       palette = c(unknown = "gray50"),
-                      #na_taxon_label = "unknown",
                       merged_clr = "black",
                       legend_title = "Species")
 ggsave(path = Images_path, filename = "Figure4.pdf", width = 7.5, height = 5.5)
@@ -340,10 +339,6 @@ plot_Sampling-rep <- ggplot(df, aes(x = Sites, y = Richness)) +
   ylab("Species richness")
 ```
 ## PCR replicates
-<p align="center">
-  <img src="Figures/Figure7.png" alt="Figure 7" width="70%"/>
-</p>
-
 ```r
 # Summarize OTU richness by PCR replicates
 summary_richness <- Nb %>%
@@ -414,7 +409,7 @@ p_shannon <- ggplot(shannon_df, aes(x = Rep, y = Shannon, color = factor(Origin)
   )
 
 (p_richness | p_shannon) + plot_annotation(tag_levels = 'A')
-ggsave(path = Images_path, filename = "Figure7.pdf", width = 8, height = 4)
+ggsave(path = Images_path, filename = "Figure6.pdf", width = 8, height = 4)
 ```
 ## Sequencing depth
 ```r
@@ -446,14 +441,13 @@ for (i in seq_along(rc)) {
   lines(attr(rc[[i]], "Subsample"), rc[[i]], col = "blue")
 }
 
-
 (plot_Sample_rep | plot_PCR_rep) / plot_Rar + plot_annotation 
 ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
 
 ```
 # Figure 9: Distance matrix - Tiahura 
 <p align="center">
-  <img src="Figures/Figure9.png" alt="Figure 9" width="60%"/>
+  <img src="Figures/Figure7.png" alt="Figure 7" width="60%"/>
 </p>
 
 ```r
@@ -540,12 +534,12 @@ grid.arrange(g1, g2, ncol = 2)
 dev.off()
 
 
-ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
+ggsave(path = Images_path, filename = "Figure7.pdf", width = 4, height = 3)
 
 ```
 # Figure 8: PCoA - Tiahura
 <p align="center">
-  <img src="Figures/Figure8.png" alt="Figure 10" width="50%"/>
+  <img src="Figures/Figure8.png" alt="Figure 8" width="50%"/>
 </p>
 
 ```r
@@ -590,7 +584,7 @@ ggsave(path = Images_path, file = "Figure10.pdf", plot = my_plot, height = 6, wi
 # Figure 9: Fish Activity ratio
 
 <p align="center">
-  <img src="Figures/Figure9.png" alt="Figure 12" width="30%">
+  <img src="Figures/Figure9.png" alt="Figure 9" width="30%">
 </p>
 
 ```r
