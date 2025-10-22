@@ -447,7 +447,7 @@ ggsave(path = Images_path, filename = "Figure6.pdf", width = 4, height = 3)
 ```
 # Figure 9: Distance matrix - Tiahura 
 <p align="center">
-  <img src="Figures/Figure7.png" alt="Figure 7" width="60%"/>
+  <img src="Figures/Figure7.png" alt="Figure 7" width="70%"/>
 </p>
 
 ```r
@@ -584,7 +584,7 @@ ggsave(path = Images_path, file = "Figure10.pdf", plot = my_plot, height = 6, wi
 # Figure 9: Fish Activity ratio
 
 <p align="center">
-  <img src="Figures/Figure9.png" alt="Figure 9" width="30%">
+  <img src="Figures/Figure9.png" alt="Figure 9" width="60%">
 </p>
 
 ```r
